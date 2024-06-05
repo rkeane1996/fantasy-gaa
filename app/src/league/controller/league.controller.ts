@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { LeagueService } from '../service/league.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateLeagueResponseDto } from '../dto/response/create-league-response.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Controller('league')
 @ApiTags('league')
@@ -12,6 +13,7 @@ export class LeagueController {
   constructor(private readonly leagueService: LeagueService) {}
 
   @Post('create')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Create a league' })
   @ApiResponse({
     status: 201,
@@ -25,6 +27,7 @@ export class LeagueController {
   }
 
   @Post('join')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Join a league' })
   @ApiResponse({
     status: 201,
@@ -35,6 +38,7 @@ export class LeagueController {
   }
 
   @Get('')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get all leagues' })
   @ApiResponse({
     status: 200,
@@ -45,6 +49,7 @@ export class LeagueController {
   }
 
   @Get(':id')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get specific league' })
   @ApiResponse({
     status: 200,
@@ -57,6 +62,7 @@ export class LeagueController {
   }
 
   @Get(':id/teams')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Gets team id that are in a specific league' })
   @ApiResponse({
     status: 200,
@@ -67,6 +73,7 @@ export class LeagueController {
   }
 
   @Get(':id/users')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Gets user ids that are in a specific league' })
   @ApiResponse({
     status: 200,

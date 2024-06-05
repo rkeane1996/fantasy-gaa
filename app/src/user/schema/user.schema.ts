@@ -3,6 +3,7 @@ import { ClubDTO } from 'lib/common/dto/club.dto';
 import { HydratedDocument } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
+import { Role } from 'src/auth/constants/roles';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -22,12 +23,14 @@ export class User {
   lastName: string;
   @Prop({ required: true })
   email: string;
-  @Prop({ required: true, type: String, select: false })
+  @Prop({ required: true, type: String })
   password: string;
   @Prop({ required: true })
   dateOfBirth: Date;
   @Prop({ required: true })
   club: ClubDTO;
+  @Prop({ required: false, default: Role.User })
+  role: Role;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

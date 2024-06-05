@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsObject,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { GameweekPointsDTO } from 'lib/common/dto/request/gameweek-points.dto';
@@ -46,7 +47,7 @@ export class PlayerDTO extends Player {
     example: 100,
   })
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   totalPoints: number;
 
   @IsArray()
@@ -57,5 +58,6 @@ export class PlayerDTO extends Player {
       { gameweek: 7, gameweekPoints: 54 },
     ],
   })
+  @IsOptional()
   gameweekPoints: GameweekPointsDTO[];
 }

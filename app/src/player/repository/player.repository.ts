@@ -34,7 +34,7 @@ export class PlayerRepository {
   }
 
   async findPlayersByCounty(county: County) {
-    return await this.playerModel.find({ county });
+    return await this.playerModel.find({ 'club.county': county });
   }
 
   async findPlayersByClub(club: string) {

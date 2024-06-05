@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamService } from '../service/team.service';
@@ -14,6 +15,9 @@ import { AddPointsDTO } from 'lib/common/dto/request/add-points.dto';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetPointsResponseDto } from 'lib/common/dto/response/get-points-response.dto';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { AdminAuthGuard } from 'src/auth/guards/admin-auth.guard';
+
 
 @Controller('team')
 @ApiTags('team')
@@ -21,6 +25,7 @@ export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 
   @Post('/add')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Create a team' })
   @ApiResponse({
     status: 201,
@@ -31,6 +36,7 @@ export class TeamController {
   }
 
   @Put('/transfer')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Make transfers for a team' })
   @ApiResponse({
     status: 201,
@@ -49,6 +55,7 @@ export class TeamController {
   }
 
   @Get(':userId')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get a users team' })
   @ApiResponse({
     status: 201,
@@ -64,6 +71,7 @@ export class TeamController {
   }
 
   @Post('addPoints')
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Add points to team' })
   @ApiResponse({
     status: 201,
@@ -81,6 +89,7 @@ export class TeamController {
   }
 
   @Get('points/:id')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get points for team' })
   @ApiResponse({
     status: 200,

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { PlayerService } from '../service/player.service';
 import { PlayerDTO } from '../dto/request/add-player-request.dto';
 import { County } from 'lib/common/enum/counties';
@@ -8,6 +8,8 @@ import { GetPointsResponseDto } from '../../../lib/common/dto/response/get-point
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
+import { AdminAuthGuard } from 'src/auth/guards/admin-auth.guard';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Controller('players')
 @ApiTags('player')
@@ -15,6 +17,7 @@ export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
   @Post('/add')
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Add a Player' })
   @ApiResponse({
     status: 201,
@@ -28,6 +31,7 @@ export class PlayerController {
   }
 
   @Get()
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get all players' })
   @ApiResponse({
     status: 200,
@@ -39,6 +43,7 @@ export class PlayerController {
   }
 
   @Get(':id')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get player' })
   @ApiResponse({
     status: 200,
@@ -56,6 +61,7 @@ export class PlayerController {
   }
 
   @Get('county/:county')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get players from county' })
   @ApiResponse({
     status: 200,
@@ -69,6 +75,7 @@ export class PlayerController {
   }
 
   @Get('club/:club')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get players from club' })
   @ApiResponse({
     status: 200,
@@ -82,6 +89,7 @@ export class PlayerController {
   }
 
   @Post('addPoints')
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Add points to player' })
   @ApiResponse({
     status: 201,
@@ -99,6 +107,7 @@ export class PlayerController {
   }
 
   @Get('points/:id')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get points for player' })
   @ApiResponse({
     status: 200,
