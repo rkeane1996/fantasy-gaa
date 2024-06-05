@@ -27,10 +27,10 @@ export class Player {
   @Prop({ required: true })
   club: ClubDTO;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: 0 })
   totalPoints: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: [] })
   gameweekPoints: IGameweekPoints[];
 }
 

@@ -12,7 +12,6 @@ export class AddPointsDTO {
   id: string;
 
   @IsNotEmpty()
-  @IsArray()
   @ApiProperty({
     example: { gameweek: 1, gameweekPoints: 34}
   })

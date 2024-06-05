@@ -1,35 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { UserDTO } from '../dto/user.dto';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/add')
-  @ApiOperation({ summary: 'Create User' })
-  @ApiResponse({
-    status: 201,
-    description: 'User created',
-  })
-  async addUser(@Body() requestdto: UserDTO) {
-    return await this.userService.createUser(requestdto);
-  }
-
-  @Delete('delete/:id')
-  @ApiOperation({ summary: 'Delete User' })
-  @ApiResponse({
-    status: 202,
-    description: 'User deleted',
-  })
-  async deleteUser(@Param('id') id: string) {
-    await this.userService.deleteUser(id);
-  }
-
   @Get()
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get Users' })
   @ApiResponse({
     status: 200,
@@ -41,6 +23,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get User' })
   @ApiResponse({
     status: 200,
@@ -52,6 +35,7 @@ export class UserController {
   }
 
   @Get('club/:clubName')
+  @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get Users from club' })
   @ApiResponse({
     status: 200,

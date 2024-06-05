@@ -31,6 +31,10 @@ export class UserRepository {
     return await this.userModel.findOne({ userId }).lean();
   }
 
+  async getUserByEmail(email: string) {
+    return await this.userModel.findOne({ email }).lean();
+  }
+
   async getUsers() {
     return await this.userModel.find().lean();
   }

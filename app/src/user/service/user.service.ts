@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { UserDTO } from '../dto/user.dto';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
+import { Role } from 'src/auth/constants/roles';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepo: UserRepository) {}
 
   async createUser(entity: UserDTO) {
-    await this.userRepo.createUser(entity);
+    return await this.userRepo.createUser(entity);
   }
 
   async deleteUser(userId: string) {
@@ -41,6 +42,19 @@ export class UserService {
       return [];
     }
     return users.map((user) => user.userId);
+  }
+
+  async getUserbyEmail(email: string) {
+    const user = await this.userRepo.getUserByEmail(email);
+    return user;
+  }
+
+  async getUserRole(userId: string, role: Role) {
+    const user = await this.userRepo.getUser(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found by id: ${userId}`);
+    }
+    return user.role === role
   }
 
   createResponseDto(user) {

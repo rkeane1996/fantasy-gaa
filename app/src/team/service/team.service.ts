@@ -17,7 +17,7 @@ import { GetPointsResponseDto } from 'lib/common/dto/response/get-points-respons
 export class TeamService {
   constructor(
     private readonly teamRepo: TeamRepository,
-    private readonly playerService: PlayerService,
+    private readonly playerService: PlayerService
   ) {}
 
   async createTeam(requestdto: CreateTeamDTO) {
