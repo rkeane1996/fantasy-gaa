@@ -1,0 +1,31 @@
+name: Check Code Quality/Style
+on:
+    workflow_call:
+
+jobs:
+    verify-app-code:
+        name: Verify App code
+        runs-on: ubuntu-22.04
+        permissions:
+            contents: read
+        defaults:
+            run:
+                working-directory: app
+        steps:
+        - name: Checkout Branch
+          uses: actions/checkout@v4
+
+        - name: Set up node
+          uses: ./.github/actions/setup-node
+          with:
+            working-directory: app
+        
+        - name: Code Checks
+          working-directory: app
+          run: npm run check:lint
+        
+        - name: Run Unit Tests
+          run: npm run test
+
+        - name: Build Code
+          run: npm run build

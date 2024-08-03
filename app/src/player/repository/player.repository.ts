@@ -3,41 +3,31 @@ import { Model } from 'mongoose';
 import { Player, PlayerDocument } from '../schema/player.schema';
 import { PlayerDTO } from '../dto/request/add-player-request.dto';
 import { County } from 'lib/common/enum/counties';
-import { AddPointsDTO } from 'lib/common/dto/request/add-points.dto';
+import { IPlayer } from '../interface/player.interface';
 
 export class PlayerRepository {
   constructor(
-    @InjectModel(Player.name)
+    @InjectModel(Player.name, process.env.FANTASY_GAA_DB_CONNECTION_NAME)
     private readonly playerModel: Model<PlayerDocument>,
   ) {}
 
-  async createPlayer(entity: PlayerDTO) {
+  async createPlayer(entity: PlayerDTO): Promise<IPlayer> {
     return await this.playerModel.create({ ...entity });
   }
 
-  async addPoints(entity: AddPointsDTO) {
-    return this.playerModel.updateOne(
-      { playerId: entity.id },
-      {
-        $push: { gameweekPoints: entity.points },
-        $inc: { totalPoints: entity.points.gameweekPoints },
-      },
-    );
+  async findAllPlayers(): Promise<IPlayer[]> {
+    return await this.playerModel.find().lean();
   }
 
-  async findAllPlayers() {
-    return await this.playerModel.find();
+  async findPlayer(playerId: string): Promise<IPlayer> {
+    return await this.playerModel.findOne({ playerId }).lean();
   }
 
-  async findPlayer(playerId: string) {
-    return await this.playerModel.findOne({ playerId });
+  async findPlayersByCounty(county: County): Promise<IPlayer[]> {
+    return await this.playerModel.find({ 'club.county': county }).lean();
   }
 
-  async findPlayersByCounty(county: County) {
-    return await this.playerModel.find({ 'club.county': county });
-  }
-
-  async findPlayersByClub(club: string) {
-    return await this.playerModel.find({ 'club.clubName': club });
+  async findPlayersByClub(club: string): Promise<IPlayer[]> {
+    return await this.playerModel.find({ 'club.clubName': club }).lean();
   }
 }

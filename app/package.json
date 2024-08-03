@@ -7,7 +7,13 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "-------- Code Checks --------": "",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "check": "npm run check:ts && npm run check:lint",
+    "check:ts": "tsc --noEmit",
+    "check:lint": "eslint \"src/**/*.ts\" \"lib/common/**/*.ts\" --max-warnings=0",
+    "check:lint:fix": "npm run check:lint -- --fix",
+    "-----------------------------":"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -16,8 +22,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

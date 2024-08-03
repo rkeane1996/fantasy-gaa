@@ -1,5 +1,4 @@
 export interface IGameweekPoints {
-    gameweek: number;
-    gameweekPoints: number;
-  }
-  
+  gameweek: number;
+  gameweekPoints: number;
+}

@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-require('dotenv').config();
+import 'dotenv/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +14,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('swagger', app, document);
-  const port = process.env.PORT || 3000
-  await app.listen(3000, () => {console.log(`Server started on port ${port} at ${Date.now()}`)});
+  const port = process.env.PORT || 3000;
+  await app.listen(3000, () => {
+    console.log(`Server started on port ${port} at ${Date.now()}`);
+  });
 }
 bootstrap();

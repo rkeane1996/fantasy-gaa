@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IGameweekPoints } from 'lib/common/interface/gameweek-points';
 
 export class GetTeamResponseDto {
   @ApiProperty({
@@ -21,17 +20,4 @@ export class GetTeamResponseDto {
     example: ['123f-53bf-4f74', '43bf-fdu5-fg54'],
   })
   players: string[];
-
-  @ApiProperty({
-    example: 123,
-  })
-  teamPoints: number;
-
-  @ApiProperty({
-    example: [
-      { gameweek: 2, gameweekPoints: 100 },
-      { gameweek: 3, gameweekPoints: 23 },
-    ],
-  })
-  gameweekPoints: IGameweekPoints[];
 }

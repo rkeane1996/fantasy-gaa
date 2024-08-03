@@ -5,7 +5,7 @@ import { UserDTO } from '../dto/user.dto';
 
 export class UserRepository {
   constructor(
-    @InjectModel(User.name)
+    @InjectModel(User.name, process.env.USER_DB_CONNECTION_NAME)
     private readonly userModel: Model<UserDocument>,
   ) {}
 

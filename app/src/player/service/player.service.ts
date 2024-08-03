@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PlayerRepository } from '../repository/player.repository';
 import { PlayerDTO } from '../dto/request/add-player-request.dto';
-import { County } from 'lib/common/enum/counties';
-import { AddPointsDTO } from 'lib/common/dto/request/add-points.dto';
-import { GetPointsResponseDto } from 'lib/common/dto/response/get-points-response.dto';
+import { County } from '../../../lib/common/enum/counties';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
 
@@ -14,17 +12,6 @@ export class PlayerService {
   async addPlayer(dto: PlayerDTO) {
     const { playerId } = await this.playerRepo.createPlayer(dto);
     return new CreatePlayerResponseDto({ id: playerId });
-  }
-
-  async addPoints(dto: AddPointsDTO) {
-    const player = await this.playerRepo.findPlayer(dto.id);
-    if (!player) {
-      throw new NotFoundException(
-        `Player not found with player id : ${dto.id}`,
-      );
-    }
-    await this.playerRepo.addPoints(dto);
-    return new GetPointsResponseDto(player.totalPoints, player.gameweekPoints);
   }
 
   async findAllPlayers() {
@@ -57,14 +44,6 @@ export class PlayerService {
       return [];
     }
     return players.map((player) => this.createResponseDto(player));
-  }
-
-  async getPlayerPoints(playerId: string) {
-    const player = await this.playerRepo.findPlayer(playerId);
-    if (!player) {
-      throw new NotFoundException(`Player was not found by id: ${playerId}`);
-    }
-    return new GetPointsResponseDto(player.totalPoints, player.gameweekPoints);
   }
 
   createResponseDto(player) {

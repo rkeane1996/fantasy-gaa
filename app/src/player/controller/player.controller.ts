@@ -1,15 +1,13 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { PlayerService } from '../service/player.service';
 import { PlayerDTO } from '../dto/request/add-player-request.dto';
-import { County } from 'lib/common/enum/counties';
-import { Club } from 'lib/common/enum/club';
-import { AddPointsDTO } from 'lib/common/dto/request/add-points.dto';
-import { GetPointsResponseDto } from '../../../lib/common/dto/response/get-points-response.dto';
+import { County } from '../../../lib/common/enum/counties';
+import { GAAClub } from '../../../lib/common/enum/club';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
-import { AdminAuthGuard } from 'src/auth/guards/admin-auth.guard';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Controller('players')
 @ApiTags('player')
@@ -83,44 +81,8 @@ export class PlayerController {
     type: [FindPlayerResponseDTO],
   })
   async getPlayersByClub(
-    @Param('club') club: Club,
+    @Param('club') club: GAAClub,
   ): Promise<FindPlayerResponseDTO[]> {
     return await this.playerService.getPlayersFromClub(club);
-  }
-
-  @Post('addPoints')
-  @UseGuards(AdminAuthGuard)
-  @ApiOperation({ summary: 'Add points to player' })
-  @ApiResponse({
-    status: 201,
-    description: 'Points added to player',
-    type: GetPointsResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Player not found',
-  })
-  async addPlayerPoints(
-    @Body() request: AddPointsDTO,
-  ): Promise<GetPointsResponseDto> {
-    return await this.playerService.addPoints(request);
-  }
-
-  @Get('points/:id')
-  @UseGuards(UserAuthGuard)
-  @ApiOperation({ summary: 'Get points for player' })
-  @ApiResponse({
-    status: 200,
-    description: 'Point for player',
-    type: GetPointsResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Player not found',
-  })
-  async getPlayerPoints(
-    @Param('id') playerId: string,
-  ): Promise<GetPointsResponseDto> {
-    return await this.playerService.getPlayerPoints(playerId);
   }
 }

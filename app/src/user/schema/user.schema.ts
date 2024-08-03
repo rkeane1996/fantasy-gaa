@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ClubDTO } from 'lib/common/dto/club.dto';
+import { ClubDTO } from '../../../lib/common/dto/club.dto';
 import { HydratedDocument } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
-import { Role } from 'src/auth/constants/roles';
+import { Role } from '../../auth/constants/roles';
 
 export type UserDocument = HydratedDocument<User>;
 

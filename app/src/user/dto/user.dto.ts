@@ -7,7 +7,7 @@ import {
   IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { ClubDTO } from 'lib/common/dto/club.dto';
+import { ClubDTO } from '../../../lib/common/dto/club.dto';
 
 export class UserDTO {
   @IsString()

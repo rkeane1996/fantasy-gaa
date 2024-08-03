@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { UserService } from '../service/user.service';
-import { UserDTO } from '../dto/user.dto';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { GAAClub } from '../../../lib/common/enum/club';
 
 @Controller('user')
 @ApiTags('user')
@@ -42,7 +42,7 @@ export class UserController {
     description: 'Users from club',
     type: [String],
   })
-  async getUsersFromClub(@Param('clubName') club: string): Promise<string[]> {
+  async getUsersFromClub(@Param('clubName') club: GAAClub): Promise<string[]> {
     return await this.userService.findUsersByClub(club);
   }
 }

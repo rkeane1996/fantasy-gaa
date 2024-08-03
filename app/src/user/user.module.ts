@@ -7,10 +7,13 @@ import { UserRepository } from './repository/user.repository';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature(
+      [{ name: User.name, schema: UserSchema }],
+      process.env.USER_DB_CONNECTION_NAME,
+    ),
   ],
   controllers: [UserController],
   providers: [UserService, UserRepository],
-  exports: [UserService]
+  exports: [UserService],
 })
 export class UserModule {}

@@ -1,3 +1,3 @@
-export const authConstant ={
-    secret: process.env.AUTH_SECRET
-}
+export const authConstant = {
+  secret: process.env.AUTH_SECRET,
+};
