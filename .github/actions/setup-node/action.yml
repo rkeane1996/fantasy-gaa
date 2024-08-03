@@ -1,0 +1,22 @@
+name: Set up Node
+description: Sets the version of node used by the job and npm cache
+inputs:
+  working-directory:
+    description: The name of the working directory to install dependencies from. Omit to not install any
+    required: false
+
+runs: 
+  using: composite
+  steps:
+    - uses: actions/setup-node@v3
+      name: Setup NodeJS
+      with:
+        node-version: 20.9.0
+        cache: ${{ inputs.working-directory && 'npm' || '' }} 
+        cache-dependency-path: ${{ inputs.working-directory }}
+    
+    - name: Install Dependencies
+      if: inputs.working-directory != ''
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: npm ci

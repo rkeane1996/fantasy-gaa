@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ClubDTO } from 'lib/common/dto/club.dto';
-import { County } from 'lib/common/enum/counties';
-import { Position } from 'src/player/enums/position';
+import { ClubDTO } from '../../../../lib/common/dto/club.dto';
+import { County } from '../../../../lib/common/enum/counties';
+import { Position } from '../../enums/position';
 
 export class FindPlayerResponseDTO {
   @ApiProperty({

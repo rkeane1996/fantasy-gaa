@@ -16,7 +16,7 @@ export class CreateLeagueDto {
   })
   @IsArray()
   @IsNotEmpty()
-  teams: string[];
+  teams?: string[];
 
   @ApiProperty({
     example: ['user1', 'user2', 'user3'],
@@ -24,5 +24,5 @@ export class CreateLeagueDto {
   })
   @IsArray()
   @IsNotEmpty()
-  users: string[];
+  users?: string[];
 }

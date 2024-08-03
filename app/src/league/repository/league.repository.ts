@@ -3,18 +3,19 @@ import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { League, LeagueDocument } from '../schema/league.schema';
 import { Model } from 'mongoose';
+import { ILeague } from '../interface/league.interface';
 
 export class LeagueRepository {
   constructor(
-    @InjectModel(League.name)
+    @InjectModel(League.name, process.env.FANTASY_GAA_DB_CONNECTION_NAME)
     private readonly leagueModel: Model<LeagueDocument>,
   ) {}
 
-  async createLeague(entity: CreateLeagueDto): Promise<League> {
+  async createLeague(entity: CreateLeagueDto): Promise<ILeague> {
     return await this.leagueModel.create(entity);
   }
 
-  async joinLeague(entity: JoinLeagueDto): Promise<League> {
+  async joinLeague(entity: JoinLeagueDto): Promise<ILeague> {
     return await this.leagueModel
       .findOneAndUpdate(
         { leagueid: entity.leagueId },
@@ -28,11 +29,11 @@ export class LeagueRepository {
       .lean();
   }
 
-  async findAllLeagues(): Promise<League[]> {
+  async findAllLeagues(): Promise<ILeague[]> {
     return await this.leagueModel.find().lean();
   }
 
-  async findLeague(leagueId: string): Promise<League> {
+  async findLeague(leagueId: string): Promise<ILeague> {
     return await this.leagueModel.findOne({ leagueid: leagueId }).lean();
   }
 

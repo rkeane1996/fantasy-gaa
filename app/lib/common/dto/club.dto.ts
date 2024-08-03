@@ -1,11 +1,11 @@
-import { Club } from "lib/common/enum/club";
-import { County } from "../enum/counties";
-import { IsEnum } from "class-validator";
+import { IsEnum } from 'class-validator';
+import { County } from '../enum/counties';
+import { GAAClub } from '../enum/club';
 
 export class ClubDTO {
-    @IsEnum(Club)
-    clubName: Club;
+  @IsEnum(GAAClub)
+  clubName: GAAClub;
 
-    @IsEnum(County)
-    county: County;
+  @IsEnum(County)
+  county: County;
 }

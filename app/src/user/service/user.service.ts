@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { UserDTO } from '../dto/user.dto';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
-import { Role } from 'src/auth/constants/roles';
+import { Role } from '../../auth/constants/roles';
 
 @Injectable()
 export class UserService {
@@ -54,7 +54,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User not found by id: ${userId}`);
     }
-    return user.role === role
+    return user.role === role;
   }
 
   createResponseDto(user) {

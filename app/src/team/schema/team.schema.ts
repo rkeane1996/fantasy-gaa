@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { IGameweekPoints } from 'lib/common/interface/gameweek-points';
 import { v4 as uuidv4 } from 'uuid';
+import { TeamPlayer } from '../dto/team-transfer.dto';
 
 export type TeamDocument = HydratedDocument<Team>;
 
@@ -23,13 +23,7 @@ export class Team {
   teamName: string;
 
   @Prop({ required: true, default: [] })
-  players: string[];
-
-  @Prop({ required: false, default: 0 })
-  teamPoints: number;
-
-  @Prop({ required: false, default: [] })
-  gameweekPoints: IGameweekPoints[];
+  players: TeamPlayer[];
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

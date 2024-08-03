@@ -1,0 +1,11 @@
+name: PR Workflow
+on:
+    push:
+        branches:
+            - main
+
+jobs:   
+    verify_app_code:
+        name: Veryify App Code
+        secrets: inherit
+        uses: ./.github/workflows/_verify-app-code.yml

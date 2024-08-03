@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { TeamPlayer } from './team-transfer.dto';
-import { GameweekPointsDTO } from 'lib/common/dto/request/gameweek-points.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTeamDTO {
@@ -25,20 +24,4 @@ export class CreateTeamDTO {
   @Type(() => TeamPlayer)
   @IsNotEmpty()
   players: string[];
-
-  @ApiProperty({
-    example: 123,
-  })
-  @IsNumber()
-  @IsOptional()
-  teamPoints: number;
-
-  @ApiProperty({
-    example: [
-      { gameweek: 2, gameweekPoints: 100 },
-      { gameweek: 3, gameweekPoints: 23 },
-    ],
-  })
-  @IsOptional()
-  gameweekPoints: GameweekPointsDTO[];
 }

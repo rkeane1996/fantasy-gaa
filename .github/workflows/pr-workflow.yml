@@ -1,0 +1,33 @@
+name: PR Workflow
+on:
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    pr_validation:
+        name: Validate PR
+        runs-on: ubuntu-22.04
+        steps:
+            
+            - name: Get commits in PR
+              id: get-pr-commits
+              uses: tim-actions/get-pr-commits@master
+              with:
+                token: ${{secrets.GITHUB_TOKEN}}
+            
+            - name: Validate number of commits
+              uses: actions/github-script@v7
+              id: get-number-commits
+              with:
+                github-token: ${{secrets.GITHUB_TOKEN}}
+                script: |
+                    const commits = ${{steps.get-pr-commits.outputs.commits}}
+                    if(commits.length > 1){
+                        core.setFailed('This PR has more than 1 commit. Please rebase!')
+                    }
+    
+    verify_app_code:
+        name: Veryify App Code
+        secrets: inherit
+        uses: ./.github/workflows/_verify-app-code.yml

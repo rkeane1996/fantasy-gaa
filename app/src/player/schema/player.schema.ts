@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ClubDTO } from 'lib/common/dto/club.dto';
-import { Position } from 'src/player/enums/position';
+import { ClubDTO } from '../../../lib/common/dto/club.dto';
+import { Position } from '../enums/position';
 import { HydratedDocument } from 'mongoose';
-import { IGameweekPoints } from 'lib/common/interface/gameweek-points';
 import { v4 as uuidv4 } from 'uuid';
+import { County } from '../../../lib/common/enum/counties';
 
 export type PlayerDocument = HydratedDocument<Player>;
 
@@ -27,11 +27,8 @@ export class Player {
   @Prop({ required: true })
   club: ClubDTO;
 
-  @Prop({ required: false, default: 0 })
-  totalPoints: number;
-
-  @Prop({ required: false, default: [] })
-  gameweekPoints: IGameweekPoints[];
+  @Prop({ required: true })
+  county: County;
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);

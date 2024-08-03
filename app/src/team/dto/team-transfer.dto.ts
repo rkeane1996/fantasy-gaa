@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { County } from 'lib/common/enum/counties';
+import { County } from '../../../lib/common/enum/counties';
 
 export class TeamPlayer {
   @IsString()

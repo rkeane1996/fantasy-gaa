@@ -11,13 +11,9 @@ import {
 import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamService } from '../service/team.service';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
-import { AddPointsDTO } from 'lib/common/dto/request/add-points.dto';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { GetPointsResponseDto } from 'lib/common/dto/response/get-points-response.dto';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
-import { AdminAuthGuard } from 'src/auth/guards/admin-auth.guard';
-
+import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
 @Controller('team')
 @ApiTags('team')
@@ -68,41 +64,5 @@ export class TeamController {
   })
   async getUsersTeam(@Param('id') userId: string): Promise<GetTeamResponseDto> {
     return await this.teamService.getTeamByUserId(userId);
-  }
-
-  @Post('addPoints')
-  @UseGuards(AdminAuthGuard)
-  @ApiOperation({ summary: 'Add points to team' })
-  @ApiResponse({
-    status: 201,
-    description: 'Points added to team',
-    type: GetPointsResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Team not found',
-  })
-  async addTeamPoints(
-    @Body() request: AddPointsDTO,
-  ): Promise<GetPointsResponseDto> {
-    return await this.teamService.addPoints(request);
-  }
-
-  @Get('points/:id')
-  @UseGuards(UserAuthGuard)
-  @ApiOperation({ summary: 'Get points for team' })
-  @ApiResponse({
-    status: 200,
-    description: 'Points for Team',
-    type: GetPointsResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Team not found',
-  })
-  async getTeamPoints(
-    @Param('id') teamId: string,
-  ): Promise<GetPointsResponseDto> {
-    return await this.teamService.getTeamPoints(teamId);
   }
 }
