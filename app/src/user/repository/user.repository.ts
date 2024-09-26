@@ -1,45 +1,50 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../schema/user.schema';
+import { User } from '../schema/user.schema';
 import { Model } from 'mongoose';
 import { UserDTO } from '../dto/user.dto';
 
 export class UserRepository {
   constructor(
     @InjectModel(User.name, process.env.USER_DB_CONNECTION_NAME)
-    private readonly userModel: Model<UserDocument>,
+    private readonly userModel: Model<User>,
   ) {}
 
-  async createUser(entity: UserDTO) {
-    return await this.userModel.create({ ...entity });
+  async createUser(entity: UserDTO): Promise<User> {
+    return await this.userModel.create(entity);
   }
 
-  async updateUser(userId: string, entity: UserDTO) {
+  async updateUser(userId: string, entity: UserDTO): Promise<User> {
     return await this.userModel
       .findOneAndUpdate(
-        { userId },
+        { id: userId },
         { $set: entity },
-        { new: true, useFindAndModify: false, overwrite: true },
+        {
+          new: true,
+          useFindAndModify: false,
+          overwrite: true,
+          returnDocument: 'after',
+        },
       )
       .lean();
   }
 
   async deleteUser(userId: string) {
-    return await this.userModel.deleteOne({ userId: userId }).lean();
+    return await this.userModel.deleteOne({ id: userId }).lean();
   }
 
-  async getUser(userId: string) {
-    return await this.userModel.findOne({ userId }).lean();
+  async getUser(id: string): Promise<User> {
+    return await this.userModel.findOne({ _id: id }).lean();
   }
 
-  async getUserByEmail(email: string) {
+  async getUserByEmail(email: string): Promise<User> {
     return await this.userModel.findOne({ email }).lean();
   }
 
-  async getUsers() {
+  async getUsers(): Promise<User[]> {
     return await this.userModel.find().lean();
   }
 
-  async findUsersByClub(club: string) {
+  async findUsersByClub(club: string): Promise<User[]> {
     return await this.userModel.find({ 'club.clubName': club }).lean();
   }
 }

@@ -9,56 +9,119 @@ import { TeamTransferDTO } from '../dto/team-transfer.dto';
 import { TeamRepository } from '../repository/team.repository';
 import { NumberOfPlayerPerCounty } from '../constants/number-players-per-county.constant';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
+import { Team, TeamPlayer } from '../schema/team.schema';
+import { County } from '../../../lib/common/enum/counties';
 
 @Injectable()
 export class TeamService {
   constructor(private readonly teamRepo: TeamRepository) {}
 
   async createTeam(requestdto: CreateTeamDTO) {
-    await this.teamRepo.createTeam(requestdto);
-    return HttpStatus.CREATED;
+    const { id } = await this.teamRepo.createTeam(requestdto);
+    return id;
   }
 
   async transferPlayers(request: TeamTransferDTO) {
-    const playersIn = request.playersIn;
-    const playersOut = request.playersOut;
+    const { playersIn, playersOut, teamId } = request;
 
-    if (playersIn.length != playersOut.length) {
+    this.validatePlayerCounts(playersIn, playersOut);
+
+    const currentTeam = await this.teamRepo.getTeamByTeamId(teamId);
+
+    this.validatePlayersOut(playersOut, currentTeam);
+    this.validatePlayersIn(playersIn, playersOut, currentTeam);
+    this.validateTransferBudget(playersIn, playersOut, currentTeam.budget);
+
+    const updatedTeam = await this.teamRepo.transferPlayers(
+      teamId,
+      playersOut,
+      playersIn,
+    );
+
+    return this.createDtoResponse(updatedTeam);
+  }
+
+  private validatePlayerCounts(
+    playersIn: TeamPlayer[],
+    playersOut: TeamPlayer[],
+  ): void {
+    if (playersIn.length !== playersOut.length) {
       throw new HttpException(
-        'Number of players being transferred in must be equal to number of players being transferred out.',
+        'The number of players being transferred in must be equal to the number of players being transferred out.',
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
 
-    const teamPlayers = await this.teamRepo.findPlayersOnTeam(request.teamId);
-
-    playersOut.forEach((player) => {
-      const playerIsOnTeam = teamPlayers.find(
-        (currentPlayerId) => currentPlayerId.playerId === player.playerId,
-      );
-      if (!playerIsOnTeam) {
+  private validatePlayersOut(
+    playersOut: TeamPlayer[],
+    currentTeam: Team,
+  ): void {
+    playersOut.forEach((playerOut) => {
+      if (
+        !currentTeam.players.some(
+          (player) => player.playerId === playerOut.playerId,
+        )
+      ) {
         throw new HttpException(
-          'Player that is being transferred out, is not part of current team',
+          `Player with ID ${playerOut.playerId} is not part of the current team.`,
           HttpStatus.BAD_REQUEST,
         );
       }
     });
+  }
 
-    playersIn.forEach((player) => {
-      const playersFromSameCounty = teamPlayers.filter(
-        (currentPlayer) => currentPlayer.county === player.county,
+  private validatePlayersIn(
+    playersIn: TeamPlayer[],
+    playersOut: TeamPlayer[],
+    currentTeam: Team,
+  ): void {
+    // Create a new array excluding players that are being transferred out
+    const currentTeamWithoutPlayersOut = currentTeam.players.filter(
+      (player) =>
+        !playersOut.some((outPlayer) => outPlayer.playerId === player.playerId),
+    );
+
+    // Combine the remaining current team with the incoming players
+    const updatedTeam = [...currentTeamWithoutPlayersOut, ...playersIn];
+
+    // Get the available counties
+    const counties: County[] = Object.values(County);
+
+    // Validate player count per county
+    counties.forEach((county) => {
+      const playersFromCounty = updatedTeam.filter(
+        (player) => player.county === county,
       );
-      if (playersFromSameCounty.length === NumberOfPlayerPerCounty) {
+      if (playersFromCounty.length > NumberOfPlayerPerCounty) {
         throw new HttpException(
-          `Too many players from the same county. Max ${NumberOfPlayerPerCounty} players per county`,
+          `Cannot add player from ${county}. Maximum of ${NumberOfPlayerPerCounty} players from ${county} allowed.`,
           HttpStatus.BAD_REQUEST,
         );
       }
     });
+  }
 
-    await this.teamRepo.transferPlayers(playersOut, playersIn);
-    const updatedTeam = await this.teamRepo.getTeamByTeamId(request.teamId);
-    return this.createDtoResponse(updatedTeam);
+  private validateTransferBudget(
+    playersIn: TeamPlayer[],
+    playersOut: TeamPlayer[],
+    teamBudget: number,
+  ): void {
+    const totalPriceForPlayersOut = playersOut.reduce(
+      (sum, player) => sum + player.price,
+      0,
+    );
+    const totalPriceForPlayersIn = playersIn.reduce(
+      (sum, player) => sum + player.price,
+      0,
+    );
+
+    if (totalPriceForPlayersIn > totalPriceForPlayersOut + teamBudget) {
+      throw new HttpException(
+        'Not enough budget to carry out this transfer.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async getTeamByUserId(userId: string) {
@@ -77,12 +140,32 @@ export class TeamService {
     return this.createDtoResponse(team);
   }
 
-  createDtoResponse(t) {
+  async getTeamByPlayerId(playerId: string) {
+    const teams = await this.teamRepo.getTeamByPlayerId(playerId);
+    return teams.map((team) => this.createDtoResponse(team));
+  }
+
+  async updatePoints(
+    teamId: string,
+    gameweekNumber: number,
+    gamweekPoints: number,
+  ) {
+    const team = await this.teamRepo.updatePoints(
+      teamId,
+      gameweekNumber,
+      gamweekPoints,
+    );
+    return this.createDtoResponse(team);
+  }
+
+  createDtoResponse(t: Team) {
     const team = new GetTeamResponseDto();
-    team.teamId = t.teamId;
+    team.teamId = t._id;
     team.userId = t.userId;
     team.teamName = t.teamName;
     team.players = t.players;
+    team.gameweekPoints = t.gameweek;
+    team.totalPoints = t.totalPoints;
     return team;
   }
 }

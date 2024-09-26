@@ -4,14 +4,48 @@ import { PlayerDTO } from '../dto/request/add-player-request.dto';
 import { County } from '../../../lib/common/enum/counties';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
+import { UpdatePlayerStatsDto } from '../dto/request/update-stats-request.dto';
+import { UpdatePlayerInfoDTO } from '../dto/request/update-player-request.dto';
+import { Player } from '../schema/player.schema';
 
 @Injectable()
 export class PlayerService {
   constructor(private readonly playerRepo: PlayerRepository) {}
 
   async addPlayer(dto: PlayerDTO) {
-    const { playerId } = await this.playerRepo.createPlayer(dto);
-    return new CreatePlayerResponseDto({ id: playerId });
+    const { id } = await this.playerRepo.createPlayer(dto);
+    return new CreatePlayerResponseDto({ id: id });
+  }
+
+  async updatePlayerInfo(entity: UpdatePlayerInfoDTO) {
+    const updatePlayerInfo = await this.playerRepo.updatePlayerInfo(entity);
+    return this.createResponseDto(updatePlayerInfo);
+  }
+
+  async updatePlayerPrice(playerId: string, newPrice: number) {
+    const updatedPlayerPrice = await this.playerRepo.updatePrice(
+      playerId,
+      newPrice,
+    );
+    return this.createResponseDto(updatedPlayerPrice);
+  }
+
+  async updatePlayerStatistics(dto: UpdatePlayerStatsDto) {
+    const updatePlayerStats = await this.playerRepo.updateStats(dto);
+    return this.createResponseDto(updatePlayerStats);
+  }
+
+  async updatePlayerPoints(
+    playerId: string,
+    gameweekNumber: number,
+    gamweekPoints: number,
+  ) {
+    const updatePlayerPoints = await this.playerRepo.updatePoints(
+      playerId,
+      gameweekNumber,
+      gamweekPoints,
+    );
+    return this.createResponseDto(updatePlayerPoints);
   }
 
   async findAllPlayers() {
@@ -46,13 +80,18 @@ export class PlayerService {
     return players.map((player) => this.createResponseDto(player));
   }
 
-  createResponseDto(player) {
+  createResponseDto(player: Player) {
     const playerResponse = new FindPlayerResponseDTO();
-    playerResponse.playerId = player.playerId;
+    playerResponse.playerId = player._id;
     playerResponse.playerName = player.playerName;
     playerResponse.position = player.position;
     playerResponse.club = player.club;
     playerResponse.county = player.club.county;
+    playerResponse.availability = player.availability;
+    playerResponse.price = player.price;
+    playerResponse.playerStats = player.stats;
+    playerResponse.totalPoints = player.totalPoints;
+    playerResponse.gameweekPoints = player.gameweekPoints;
     return playerResponse;
   }
 }

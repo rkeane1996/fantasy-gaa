@@ -41,7 +41,7 @@ export class UserService {
     if (!users || users.length === 0) {
       return [];
     }
-    return users.map((user) => user.userId);
+    return users.map((user) => user._id);
   }
 
   async getUserbyEmail(email: string) {
@@ -61,7 +61,9 @@ export class UserService {
     const userResponse = new GetUserResponseDto();
     userResponse.firstName = user.firstName;
     userResponse.lastName = user.lastName;
-    userResponse.userId = user.userId;
+    userResponse.userId = user._id;
+    userResponse.email = user.email;
+    userResponse.club = user.club;
     return userResponse;
   }
 }

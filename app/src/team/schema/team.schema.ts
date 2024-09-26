@@ -1,29 +1,36 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
-import { TeamPlayer } from '../dto/team-transfer.dto';
+import { County } from 'lib/common/enum/counties';
+import { Document } from 'mongoose';
 
-export type TeamDocument = HydratedDocument<Team>;
+export class TeamPlayer {
+  playerId: string;
+  position: string;
+  county: County;
+  price: number;
+  isCaptain: boolean;
+  isViceCaptain: boolean;
+  isSub: boolean;
+}
 
-@Schema()
-export class Team {
-  @Prop({
-    required: true,
-    unique: true,
-    type: String,
-    default: () => uuidv4(7),
-    index: { unique: true },
-  })
-  teamId: string;
-
-  @Prop({ required: true, unique: true })
-  userId: string;
-
+@Schema({ timestamps: true })
+export class Team extends Document {
   @Prop({ required: true })
   teamName: string;
 
-  @Prop({ required: true, default: [] })
-  players: TeamPlayer[];
+  @Prop()
+  userId: string;
+
+  @Prop({ type: Array<TeamPlayer>, length: 18 })
+  players: Array<TeamPlayer>;
+
+  @Prop({ default: 100.0, min: 0, max: 100.0 })
+  budget: number;
+
+  @Prop({ required: false, default: 0 })
+  totalPoints: number;
+
+  @Prop({ required: false, default: [] })
+  gameweek: [{ gameweek: number; players: Array<TeamPlayer>; points: number }];
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

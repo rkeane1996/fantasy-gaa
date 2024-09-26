@@ -1,27 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import { Document } from 'mongoose';
 
 @Schema()
-export class League {
-  @Prop({
-    required: true,
-    unique: true,
-    type: String,
-    default: () => uuidv4(7),
-    index: { unique: true },
-  })
-  leagueid: string;
-
+export class League extends Document {
   @Prop({ required: true })
   leagueName: string;
 
-  @Prop({ required: false, default: [] })
+  @Prop({ unique: true, required: false, default: [] })
   teams: string[];
 
-  @Prop({ required: false, default: [] })
-  users: string[];
+  @Prop({ required: true })
+  admin: string;
+
+  @Prop({ unique: true, default: generateUniqueCode() })
+  leagueCode: string;
+
+  @Prop({ required: false, default: new Date() })
+  createdAt: Date;
 }
 
-export type LeagueDocument = HydratedDocument<League>;
 export const LeagueSchema = SchemaFactory.createForClass(League);
+
+function generateUniqueCode(): string {
+  const timestamp = Date.now().toString(36); // Convert timestamp to base36 string
+  const randomNum = Math.random().toString(36).substring(2, 9); // Generate a random base36 string
+  return `${timestamp}-${randomNum}`;
+}

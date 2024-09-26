@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { LeagueModule } from './league/league.module';
 import { AuthModule } from './auth/auth.module';
 import { PointsModule } from './points/points.module';
+import { GameweekModule } from './gameweek/gameweek.module';
+import 'dotenv/config';
 
 @Module({
   imports: [
@@ -21,9 +23,7 @@ import { PointsModule } from './points/points.module';
     MongooseModule.forRoot(process.env.FANTASY_GAA_DB_CONNECTION_STRING, {
       connectionName: process.env.FANTASY_GAA_DB_CONNECTION_NAME,
     }),
-    MongooseModule.forRoot(process.env.POINTS_DB_CONNECTION_STRING, {
-      connectionName: process.env.POINTS_DB_CONNECTION_NAME,
-    }),
+    GameweekModule,
   ],
 })
 export class AppModule {}
