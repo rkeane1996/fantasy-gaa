@@ -6,6 +6,7 @@ import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { GAAClub } from '../../../lib/common/enum/club';
+import { County } from '../../../lib/common/enum/counties';
 
 describe('UserController', () => {
   let userController: UserController;
@@ -53,6 +54,8 @@ describe('UserController', () => {
           userId: 'r438-43rtfv-6yjh6-g54y',
           firstName: 'Ronan',
           lastName: 'Keane',
+          email: 'TEST@TESTING.COM',
+          club: { clubName: GAAClub.Carnmore, county: County.Galway },
         },
       ];
       jest.spyOn(userService, 'getUsers').mockResolvedValue(result);
@@ -78,6 +81,8 @@ describe('UserController', () => {
         userId: 'r438-43rtfv-6yjh6-g54y',
         firstName: 'Ronan',
         lastName: 'Keane',
+        email: 'TEST@TESTING.COM',
+        club: { clubName: GAAClub.Carnmore, county: County.Galway },
       };
       jest.spyOn(userService, 'getUser').mockResolvedValue(result);
 
@@ -105,8 +110,12 @@ describe('UserController', () => {
       const result: string[] = ['Ronan Keane'];
       jest.spyOn(userService, 'findUsersByClub').mockResolvedValue(result);
 
-      expect(await userController.getUsersFromClub(GAAClub.BallybodenStEndas)).toBe(result);
-      expect(userService.findUsersByClub).toHaveBeenCalledWith("Ballyboden St Enda's");
+      expect(
+        await userController.getUsersFromClub(GAAClub.BallybodenStEndas),
+      ).toBe(result);
+      expect(userService.findUsersByClub).toHaveBeenCalledWith(
+        "Ballyboden St Enda's",
+      );
     });
 
     it('should handle errors gracefully', async () => {
@@ -114,9 +123,9 @@ describe('UserController', () => {
         .spyOn(userService, 'findUsersByClub')
         .mockRejectedValue(new Error('Error retrieving users from club'));
 
-      await expect(userController.getUsersFromClub(GAAClub.Carnmore)).rejects.toThrow(
-        'Error retrieving users from club',
-      );
+      await expect(
+        userController.getUsersFromClub(GAAClub.Carnmore),
+      ).rejects.toThrow('Error retrieving users from club');
     });
   });
 });
@@ -164,6 +173,8 @@ describe('UserController with UserAuthGuard', () => {
           userId: 'r438-43rtfv-6yjh6-g54y',
           firstName: 'Ronan',
           lastName: 'Keane',
+          email: 'TEST@TESTING.COM',
+          club: { clubName: GAAClub.Carnmore, county: County.Galway },
         },
       ];
       jest.spyOn(userService, 'getUsers').mockResolvedValue(result);
@@ -189,6 +200,8 @@ describe('UserController with UserAuthGuard', () => {
         userId: 'r438-43rtfv-6yjh6-g54y',
         firstName: 'Ronan',
         lastName: 'Keane',
+        email: 'TEST@TESTING.COM',
+        club: { clubName: GAAClub.Carnmore, county: County.Galway },
       };
       jest.spyOn(userService, 'getUser').mockResolvedValue(result);
 
@@ -216,8 +229,12 @@ describe('UserController with UserAuthGuard', () => {
       const result: string[] = ['Ronan Keane'];
       jest.spyOn(userService, 'findUsersByClub').mockResolvedValue(result);
 
-      expect(await userController.getUsersFromClub(GAAClub.CrossmaglenRangers)).toBe(result);
-      expect(userService.findUsersByClub).toHaveBeenCalledWith('Crossmaglen Rangers');
+      expect(
+        await userController.getUsersFromClub(GAAClub.CrossmaglenRangers),
+      ).toBe(result);
+      expect(userService.findUsersByClub).toHaveBeenCalledWith(
+        'Crossmaglen Rangers',
+      );
     });
 
     it('should handle errors gracefully', async () => {
@@ -225,9 +242,9 @@ describe('UserController with UserAuthGuard', () => {
         .spyOn(userService, 'findUsersByClub')
         .mockRejectedValue(new Error('Error retrieving users from club'));
 
-      await expect(userController.getUsersFromClub(GAAClub.Corofin)).rejects.toThrow(
-        'Error retrieving users from club',
-      );
+      await expect(
+        userController.getUsersFromClub(GAAClub.Corofin),
+      ).rejects.toThrow('Error retrieving users from club');
     });
   });
 });

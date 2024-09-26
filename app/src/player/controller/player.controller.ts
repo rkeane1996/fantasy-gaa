@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { PlayerService } from '../service/player.service';
 import { PlayerDTO } from '../dto/request/add-player-request.dto';
 import { County } from '../../../lib/common/enum/counties';
@@ -8,6 +16,9 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
 import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { UpdatePlayerInfoDTO } from '../dto/request/update-player-request.dto';
+import { UpdatePlayerPriceDTO } from '../dto/request/update-player-price-request.dto';
+import { UpdatePlayerStatsDto } from '../dto/request/update-stats-request.dto';
 
 @Controller('players')
 @ApiTags('player')
@@ -26,6 +37,51 @@ export class PlayerController {
     @Body() requestdto: PlayerDTO,
   ): Promise<CreatePlayerResponseDto> {
     return await this.playerService.addPlayer(requestdto);
+  }
+
+  @Put('/update/playerInfo')
+  @UseGuards(AdminAuthGuard)
+  @ApiOperation({ summary: 'Update Players information' })
+  @ApiResponse({
+    status: 201,
+    description: 'Update player information',
+    type: FindPlayerResponseDTO,
+  })
+  async updatePlayerInfo(
+    @Body() requestdto: UpdatePlayerInfoDTO,
+  ): Promise<FindPlayerResponseDTO> {
+    return await this.playerService.updatePlayerInfo(requestdto);
+  }
+
+  @Put('/update/price')
+  @UseGuards(AdminAuthGuard)
+  @ApiOperation({ summary: 'Update Players price' })
+  @ApiResponse({
+    status: 201,
+    description: 'Update player price',
+    type: FindPlayerResponseDTO,
+  })
+  async updatePlayerPrice(
+    @Body() requestdto: UpdatePlayerPriceDTO,
+  ): Promise<FindPlayerResponseDTO> {
+    return await this.playerService.updatePlayerPrice(
+      requestdto.playerId,
+      requestdto.price,
+    );
+  }
+
+  @Put('/update/statistics')
+  @UseGuards(AdminAuthGuard)
+  @ApiOperation({ summary: 'Update Players statistics' })
+  @ApiResponse({
+    status: 201,
+    description: 'Update player statistics',
+    type: FindPlayerResponseDTO,
+  })
+  async updatePlayerStats(
+    @Body() requestdto: UpdatePlayerStatsDto,
+  ): Promise<FindPlayerResponseDTO> {
+    return await this.playerService.updatePlayerStatistics(requestdto);
   }
 
   @Get()

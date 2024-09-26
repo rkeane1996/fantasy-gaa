@@ -27,7 +27,7 @@ export class AuthService {
     }
     const newUser = await this.userService.createUser(user);
     delete newUser.password;
-    const payload: any = { email: newUser.email, sub: newUser.userId };
+    const payload: any = { email: newUser.email, sub: newUser.id };
     return {
       accesstoken: await this.jwtService.signAsync(payload),
     };
@@ -46,7 +46,7 @@ export class AuthService {
       throw new UnauthorizedException('Password is incorrect');
     }
     delete user.password;
-    const payload: any = { email: user.email, sub: user.userId };
+    const payload: any = { email: user.email, sub: user._id };
 
     return {
       accesstoken: await this.jwtService.signAsync(payload),

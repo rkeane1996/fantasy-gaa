@@ -1,27 +1,35 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { LeagueRepository } from '../repository/league.repository';
-import { CreateLeagueResponseDto } from '../dto/response/create-league-response.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class LeagueService {
   constructor(private readonly leagueRepo: LeagueRepository) {}
 
   async createLeague(request: CreateLeagueDto) {
-    const { leagueid } = await this.leagueRepo.createLeague(request);
-    return new CreateLeagueResponseDto({ id: leagueid });
+    const newLeague = await this.leagueRepo.createLeague(request);
+    return plainToInstance(GetLeagueResponseDto, { newLeague });
   }
 
   async joinLeague(request: JoinLeagueDto) {
-    await this.leagueRepo.joinLeague(request);
-    return HttpStatus.CREATED;
+    const league = await this.leagueRepo.findLeagueByCode(request.leagueCode);
+    if (!league) {
+      throw new NotFoundException(
+        `League with code ${request.leagueCode} does not exist`,
+      );
+    }
+    const updatedLeague = await this.leagueRepo.joinLeague(request);
+    return plainToInstance(GetLeagueResponseDto, updatedLeague);
   }
 
   async getLeagues() {
     const leagues = await this.leagueRepo.findAllLeagues();
-    return leagues.map((league) => new GetLeagueResponseDto(league));
+    return leagues.map((league) =>
+      plainToInstance(GetLeagueResponseDto, league),
+    );
   }
 
   async getLeague(leagueId: string) {
@@ -29,7 +37,7 @@ export class LeagueService {
     if (!league) {
       throw new NotFoundException(`League not found`);
     }
-    return new GetLeagueResponseDto(league);
+    return plainToInstance(GetLeagueResponseDto, league);
   }
 
   async getTeamsInLeague(leagueId: string) {
@@ -38,13 +46,5 @@ export class LeagueService {
       return [];
     }
     return teamsInLeague;
-  }
-
-  async getUsersInLeague(leagueId: string) {
-    const usersInLeague = await this.leagueRepo.findUsersInLeague(leagueId);
-    if (!usersInLeague || usersInLeague.length === 0) {
-      return [];
-    }
-    return usersInLeague;
   }
 }

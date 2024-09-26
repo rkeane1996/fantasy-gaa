@@ -60,14 +60,34 @@ describe('TeamController', () => {
       const createTeamDto: CreateTeamDTO = {
         userId: '234-fgre43rg5-43g',
         teamName: 'Best Team Ever',
-        players: ['123f-53bf-4f74', '43bf-fdu5-fg54'],
+        players: [
+          {
+            playerId: 'r43-gf34-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: false,
+            isSub: false,
+          },
+          {
+            playerId: 'r43-vfre54-bvrb6',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: false,
+            isViceCaptain: true,
+            isSub: false,
+          },
+        ],
+        budget: 50,
       };
 
       jest
         .spyOn(teamService, 'createTeam')
         .mockResolvedValue(HttpStatus.CREATED);
 
-      expect(await teamController.addPlayer(createTeamDto)).toBe(
+      expect(await teamController.addTeam(createTeamDto)).toBe(
         HttpStatus.CREATED,
       );
       expect(teamService.createTeam).toHaveBeenCalledWith(createTeamDto);
@@ -79,16 +99,64 @@ describe('TeamController', () => {
       const transferDto: TeamTransferDTO = {
         teamId: 'h768-f687-s21-vr45v',
         playersIn: [
-          { playerId: '432f43r-grt5-g54-fg45t', county: County.Cork },
+          {
+            playerId: 'r43-gf34-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
+          ,
         ],
-        playersOut: [{ playerId: '123f-53bf-4f74', county: County.Cork }],
+        playersOut: [
+          {
+            playerId: 'r43-fre5-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
+        ],
       };
 
       const responseDto: GetTeamResponseDto = {
         teamId: '54g-r43f-43fg-43f',
         userId: '543f54-t54g6-43fg-54g54',
         teamName: 'Best Team Ever',
-        players: ['432f43r-grt5-g54-fg45t'],
+        players: [
+          {
+            playerId: 'r43-gf34-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
+        ],
+        budget: 50,
+        totalPoints: 4,
+        gameweekPoints: [
+          {
+            gameweek: 1,
+            players: [
+              {
+                playerId: 'r43-gf34-gre',
+                position: 'Forward',
+                county: County.Galway,
+                price: 5,
+                isCaptain: true,
+                isViceCaptain: true,
+                isSub: false,
+              },
+            ],
+            points: 4,
+          },
+        ],
       };
 
       jest.spyOn(teamService, 'transferPlayers').mockResolvedValue(responseDto);
@@ -101,9 +169,27 @@ describe('TeamController', () => {
       const transferDto: TeamTransferDTO = {
         teamId: 'h768-f687-s21-vr45v',
         playersIn: [
-          { playerId: '432f43r-grt5-g54-fg45t', county: County.Cork },
+          {
+            playerId: 'r43-gf34-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
         ],
-        playersOut: [{ playerId: '123f-53bf-4f74', county: County.Cork }],
+        playersOut: [
+          {
+            playerId: 'vfd4-gf34-vfd',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: false,
+            isViceCaptain: true,
+            isSub: false,
+          },
+        ],
       };
 
       jest.spyOn(teamService, 'transferPlayers').mockImplementation(() => {
@@ -126,7 +212,45 @@ describe('TeamController', () => {
         teamId: '54g-r43f-43fg-43f',
         userId: '543f54-t54g6-43fg-54g54',
         teamName: 'Best Team Ever',
-        players: ['123f-53bf-4f74', '43bf-fdu5-fg54'],
+        players: [
+          {
+            playerId: 'r43-gf34-gre',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
+          {
+            playerId: 'r43-gf34-gtrg-5gv',
+            position: 'Forward',
+            county: County.Galway,
+            price: 5,
+            isCaptain: true,
+            isViceCaptain: true,
+            isSub: false,
+          },
+        ],
+        budget: 50,
+        totalPoints: 4,
+        gameweekPoints: [
+          {
+            gameweek: 1,
+            players: [
+              {
+                playerId: 'r43-gf34-gre',
+                position: 'Forward',
+                county: County.Galway,
+                price: 5,
+                isCaptain: true,
+                isViceCaptain: true,
+                isSub: false,
+              },
+            ],
+            points: 4,
+          },
+        ],
       };
 
       jest.spyOn(teamService, 'getTeamByUserId').mockResolvedValue(responseDto);
@@ -144,6 +268,32 @@ describe('TeamController', () => {
 
       await expect(teamController.getUsersTeam(userId)).rejects.toThrow(Error);
       expect(teamService.getTeamByUserId).toHaveBeenCalledWith(userId);
+    });
+  });
+
+  describe('guards', () => {
+    it('should apply UserAuthGuard to addTeam', () => {
+      const guards = Reflect.getMetadata('__guards__', teamController.addTeam);
+      expect(guards).toHaveLength(1);
+      expect(guards[0]).toBe(UserAuthGuard);
+    });
+
+    it('should apply UserAuthGuard to makeTransfer', () => {
+      const guards = Reflect.getMetadata(
+        '__guards__',
+        teamController.makeTransfer,
+      );
+      expect(guards).toHaveLength(1);
+      expect(guards[0]).toBe(UserAuthGuard);
+    });
+
+    it('should apply UserAuthGuard to getUsersTeam', () => {
+      const guards = Reflect.getMetadata(
+        '__guards__',
+        teamController.getUsersTeam,
+      );
+      expect(guards).toHaveLength(1);
+      expect(guards[0]).toBe(UserAuthGuard);
     });
   });
 });

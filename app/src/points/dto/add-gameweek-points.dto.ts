@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { Points } from '../../types/points.type';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { Points } from '../types/points.type';
 
-export class AddPlayerGameweekPoints {
+export class AddPoints {
   @ApiProperty({
     example: '324-4fvrefv-43fvre-4fre',
   })
@@ -11,11 +11,11 @@ export class AddPlayerGameweekPoints {
   playerId: string;
 
   @ApiProperty({
-    example: 2,
+    example: '324-4fvrefv-43fvre-4fre',
   })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  gameweekNumber: number;
+  matchId: string;
 
   @ApiProperty({
     example: [{ pointType: 'Point Scored', pointValue: 1 }],

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -10,7 +10,7 @@ import { GAAClub } from '../../../lib/common/enum/club';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
+  @Get('/users')
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get Users' })
   @ApiResponse({
@@ -22,7 +22,7 @@ export class UserController {
     return await this.userService.getUsers();
   }
 
-  @Get(':id')
+  @Get()
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get User' })
   @ApiResponse({
@@ -30,11 +30,11 @@ export class UserController {
     description: 'User retrieved',
     type: GetUserResponseDto,
   })
-  async getUser(@Param('id') id: string): Promise<GetUserResponseDto> {
+  async getUser(@Query('id') id: string): Promise<GetUserResponseDto> {
     return await this.userService.getUser(id);
   }
 
-  @Get('club/:clubName')
+  @Get('club')
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get Users from club' })
   @ApiResponse({
@@ -42,7 +42,7 @@ export class UserController {
     description: 'Users from club',
     type: [String],
   })
-  async getUsersFromClub(@Param('clubName') club: GAAClub): Promise<string[]> {
+  async getUsersFromClub(@Query('clubName') club: GAAClub): Promise<string[]> {
     return await this.userService.findUsersByClub(club);
   }
 }

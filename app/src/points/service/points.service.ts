@@ -1,98 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { AddPlayerGameweekPoints } from '../dto/request/add-player-gameweek-points.dto';
-import { AddTeamGameweekPoints } from '../dto/request/add-team-gameweek-points.dto';
-import { GetPlayerGameweekPoints } from '../dto/request/get-player-gameweek-points.dto';
-import { GetTeamGameweekPoints } from '../dto/request/get-team-gameweek-points.dto';
-import { AddPointTypes } from '../dto/request/add-point-type.dto';
-import { PointsRepository } from '../repository/points.repository';
-import { TeamPoints } from '../schema/team-points.schema';
-import { PlayerPoints } from '../schema/player-points.schema';
-import { GetGameweekPointsResponse } from '../dto/response/get-gameweek-points.dto';
-import { Points } from '../schema/points.schema';
+import { GameweekService } from '../../../src/gameweek/service/gameweek.service';
+import { AddPoints } from '../dto/add-gameweek-points.dto';
+import { PlayerService } from '../../../src/player/service/player.service';
+import { TeamService } from '../../../src/team/service/team.service';
+import { plainToInstance } from 'class-transformer';
+import { AddGameweekPointsResponseDto } from '../dto/add-gameweek-points.response.dto';
 
 @Injectable()
 export class PointsService {
-  constructor(readonly pointsRepository: PointsRepository) {}
+  constructor(
+    private readonly gameweekService: GameweekService,
+    private readonly playerService: PlayerService,
+    private readonly teamService: TeamService,
+  ) {}
 
-  async addPlayerPoints(request: AddPlayerGameweekPoints) {
-    await this.pointsRepository.insertPlayerPoints(request);
-  }
+  async addPoints(request: AddPoints): Promise<AddGameweekPointsResponseDto> {
+    //update match schema
+    const updatedMatch =
+      await this.gameweekService.updatePlayerPointsScoredInMatch(
+        request.playerId,
+        request.matchId,
+        request.points,
+      );
 
-  async lockGameWeekTeam(request: AddTeamGameweekPoints) {
-    await this.pointsRepository.lockGameWeekTeam(request);
-  }
+    const totalGameweekPoints = request.points.reduce((total, currentPoint) => {
+      return total + currentPoint.pointValue;
+    }, 0);
+    //update player schema
 
-  async getPlayerPoints(
-    request: GetPlayerGameweekPoints,
-  ): Promise<GetGameweekPointsResponse> {
-    const points = await this.pointsRepository.findPlayerPoints(
+    const player = await this.playerService.updatePlayerPoints(
       request.playerId,
+      updatedMatch.gameweek,
+      totalGameweekPoints,
     );
 
-    const response = new GetGameweekPointsResponse();
-
-    if (!points) {
-      return response;
-    }
-
-    const gameweekPoints = points.map((gameweekPoint: PlayerPoints) => {
-      if (request.gameweekNumber.includes(gameweekPoint.gameweekNumber)) {
-        return gameweekPoint;
+    //update team schema
+    const teams = await this.teamService.getTeamByPlayerId(player.playerId);
+    teams.forEach(async (team) => {
+      const playerIsOnTeam = team.players.find(
+        (p) => p.playerId === player.playerId,
+      );
+      if (!playerIsOnTeam.isSub) {
+        await this.teamService.updatePoints(
+          team.teamId,
+          updatedMatch.gameweek,
+          totalGameweekPoints,
+        );
       }
     });
 
-    if (!gameweekPoints) {
-      return response;
-    }
-
-    response.points = gameweekPoints.map((gameweekPoint) => {
-      let totalPoints = 0;
-      gameweekPoint.points.forEach((p) => (totalPoints += p.pointValue));
-      return {
-        gameweek: gameweekPoint.gameweekNumber,
-        points: totalPoints,
-        pointTypes: gameweekPoint.points,
-      };
+    return plainToInstance(AddGameweekPointsResponseDto, {
+      playerId: player.playerId,
+      totalPoints: player.totalPoints,
+      gameweekPoints: player.gameweekPoints,
     });
-
-    return response;
-  }
-
-  async getTeamPoints(
-    request: GetTeamGameweekPoints,
-  ): Promise<GetGameweekPointsResponse> {
-    const points = await this.pointsRepository.findTeamPoints(request.teamId);
-    const response = new GetGameweekPointsResponse();
-    if (!points) {
-      return response;
-    }
-
-    const gameweekPoints = points.map((gameweekPoint: TeamPoints) => {
-      if (request.gameweekNumber.includes(gameweekPoint.gameweekNumber)) {
-        return gameweekPoint;
-      }
-    });
-
-    if (!gameweekPoints) {
-      return response;
-    }
-
-    response.points = gameweekPoints.map((_) => {
-      return { gameweek: _.gameweekNumber, points: _.totalPoints };
-    });
-
-    return response;
-  }
-
-  async addPointTypes(request: AddPointTypes) {
-    await this.pointsRepository.insertPointType(request);
-  }
-
-  async getPointTypes(): Promise<Points[]> {
-    const pointTypes = await this.pointsRepository.getPointTypes();
-    if (!pointTypes) {
-      return [];
-    }
-    return pointTypes;
   }
 }

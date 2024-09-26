@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { LeagueService } from '../service/league.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateLeagueResponseDto } from '../dto/response/create-league-response.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 
@@ -18,11 +17,11 @@ export class LeagueController {
   @ApiResponse({
     status: 201,
     description: 'League is created',
-    type: CreateLeagueResponseDto,
+    type: GetLeagueResponseDto,
   })
   async createLeague(
     @Body() request: CreateLeagueDto,
-  ): Promise<CreateLeagueResponseDto> {
+  ): Promise<GetLeagueResponseDto> {
     return await this.leagueService.createLeague(request);
   }
 
@@ -36,7 +35,7 @@ export class LeagueController {
     return await this.leagueService.joinLeague(request);
   }
 
-  @Get('')
+  @Get('all')
   @ApiOperation({ summary: 'Get all leagues' })
   @ApiResponse({
     status: 200,
@@ -46,35 +45,27 @@ export class LeagueController {
     return await this.leagueService.getLeagues();
   }
 
-  @Get(':id')
+  @Get('/')
   @ApiOperation({ summary: 'Get specific league' })
   @ApiResponse({
     status: 200,
     type: GetLeagueResponseDto,
   })
   async getLeague(
-    @Param('id') leagueId: string,
+    @Query('leagueId') leagueId: string,
   ): Promise<GetLeagueResponseDto> {
     return await this.leagueService.getLeague(leagueId);
   }
 
-  @Get(':id/teams')
+  @Get('teams')
   @ApiOperation({ summary: 'Gets team id that are in a specific league' })
   @ApiResponse({
     status: 200,
     type: [String],
   })
-  async getTeamsInLeague(@Param('id') leagueId: string): Promise<string[]> {
+  async getTeamsInLeague(
+    @Query('leagueId') leagueId: string,
+  ): Promise<string[]> {
     return await this.leagueService.getTeamsInLeague(leagueId);
-  }
-
-  @Get(':id/users')
-  @ApiOperation({ summary: 'Gets user ids that are in a specific league' })
-  @ApiResponse({
-    status: 200,
-    type: [String],
-  })
-  async getUsersInLeague(@Param('id') leagueId: string): Promise<string[]> {
-    return await this.leagueService.getUsersInLeague(leagueId);
   }
 }

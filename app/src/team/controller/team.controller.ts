@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Param,
   Post,
   Put,
@@ -27,7 +26,7 @@ export class TeamController {
     status: 201,
     description: 'Team is created',
   })
-  async addPlayer(@Body() requestdto: CreateTeamDTO): Promise<HttpStatus> {
+  async addTeam(@Body() requestdto: CreateTeamDTO): Promise<string> {
     return await this.teamService.createTeam(requestdto);
   }
 
@@ -62,7 +61,25 @@ export class TeamController {
     status: 404,
     description: 'Team not found',
   })
-  async getUsersTeam(@Param('id') userId: string): Promise<GetTeamResponseDto> {
+  async getUsersTeam(
+    @Param('userId') userId: string,
+  ): Promise<GetTeamResponseDto> {
     return await this.teamService.getTeamByUserId(userId);
+  }
+
+  @Get(':teamId')
+  @UseGuards(UserAuthGuard)
+  @ApiOperation({ summary: 'Get a team' })
+  @ApiResponse({
+    status: 201,
+    description: 'Get Team',
+    type: GetTeamResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Team not found',
+  })
+  async getTeam(@Param('teamId') teamId: string): Promise<GetTeamResponseDto> {
+    return await this.teamService.getTeamByTeamId(teamId);
   }
 }

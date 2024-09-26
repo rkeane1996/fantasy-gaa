@@ -1,40 +1,45 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRepository } from '../repository/user.repository';
 import { UserDTO } from '../dto/user.dto';
 import { GetUserResponseDto } from '../dto/get-user-response.dto';
-import { NotFoundException } from '@nestjs/common';
 import { Role } from '../../auth/constants/roles';
+import { GAAClub } from '../../../lib/common/enum/club';
+import { County } from '../../../lib/common/enum/counties';
 
 describe('UserService', () => {
-  let userService: UserService;
-  let userRepository: UserRepository;
+  let service: UserService;
+  let userRepo: UserRepository;
 
-  const mockUserRepository = {
+  const mockUserRepo = {
     createUser: jest.fn(),
-    deleteUser: jest.fn(),
     getUser: jest.fn(),
+    deleteUser: jest.fn(),
     getUsers: jest.fn(),
     findUsersByClub: jest.fn(),
     getUserByEmail: jest.fn(),
+  };
+
+  const mockUser = {
+    _id: 'user-id',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    club: { clubName: 'Club1', county: 'County1' },
+    role: Role.User,
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
-        {
-          provide: UserRepository,
-          useValue: mockUserRepository,
-        },
+        { provide: UserRepository, useValue: mockUserRepo },
       ],
     }).compile();
 
-    userService = module.get<UserService>(UserService);
-    userRepository = module.get<UserRepository>(UserRepository);
-  });
-  it('should be defined', () => {
-    expect(userService).toBeDefined();
+    service = module.get<UserService>(UserService);
+    userRepo = module.get<UserRepository>(UserRepository);
   });
 
   afterEach(() => {
@@ -42,182 +47,158 @@ describe('UserService', () => {
   });
 
   describe('createUser', () => {
-    it('should create a new user', async () => {
+    it('should create a user successfully', async () => {
       const userDto: UserDTO = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
-        password: 'StrongPassword123',
+        password: 'StrongPass123',
         dateOfBirth: new Date('1990-01-01'),
-        club: { clubName: 'Galway' } as any, // Assuming ClubDTO structure
+        club: { clubName: GAAClub.BallybodenStEndas, county: County.Antrim },
       };
+      mockUserRepo.createUser.mockResolvedValue(mockUser);
 
-      mockUserRepository.createUser.mockResolvedValue(userDto);
+      const result = await service.createUser(userDto);
 
-      const result = await userService.createUser(userDto);
-      expect(result).toEqual(userDto);
-      expect(userRepository.createUser).toHaveBeenCalledWith(userDto);
+      expect(userRepo.createUser).toHaveBeenCalledWith(userDto);
+      expect(result).toEqual(mockUser);
     });
   });
 
   describe('deleteUser', () => {
-    it('should delete a user by ID', async () => {
-      mockUserRepository.getUser.mockResolvedValue({ userId: '1' });
-      mockUserRepository.deleteUser.mockResolvedValue(null);
+    it('should delete a user if found', async () => {
+      mockUserRepo.getUser.mockResolvedValue(mockUser);
 
-      await userService.deleteUser('1');
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
-      expect(userRepository.deleteUser).toHaveBeenCalledWith('1');
+      await service.deleteUser('user-id');
+
+      expect(userRepo.getUser).toHaveBeenCalledWith('user-id');
+      expect(userRepo.deleteUser).toHaveBeenCalledWith('user-id');
     });
 
-    it('should throw a NotFoundException if user does not exist', async () => {
-      mockUserRepository.getUser.mockResolvedValue(null);
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockUserRepo.getUser.mockResolvedValue(null);
 
-      await expect(userService.deleteUser('1')).rejects.toThrow(
+      await expect(service.deleteUser('non-existent-id')).rejects.toThrow(
         NotFoundException,
       );
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
-      expect(userRepository.deleteUser).not.toHaveBeenCalled();
+      expect(userRepo.getUser).toHaveBeenCalledWith('non-existent-id');
+      expect(userRepo.deleteUser).not.toHaveBeenCalled();
     });
   });
 
   describe('getUser', () => {
-    it('should return a user by ID', async () => {
-      const user = { userId: '1', firstName: 'John', lastName: 'Doe' };
-      const expectedResponse = new GetUserResponseDto();
-      expectedResponse.userId = '1';
-      expectedResponse.firstName = 'John';
-      expectedResponse.lastName = 'Doe';
+    it('should return a user if found', async () => {
+      mockUserRepo.getUser.mockResolvedValue(mockUser);
 
-      mockUserRepository.getUser.mockResolvedValue(user);
+      const result = await service.getUser('user-id');
 
-      const result = await userService.getUser('1');
-      expect(result).toEqual(expectedResponse);
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
+      expect(userRepo.getUser).toHaveBeenCalledWith('user-id');
+      expect(result).toBeInstanceOf(GetUserResponseDto);
+      expect(result.userId).toBe(mockUser._id);
+      expect(result.firstName).toBe(mockUser.firstName);
     });
 
-    it('should throw a NotFoundException if user does not exist', async () => {
-      mockUserRepository.getUser.mockResolvedValue(null);
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockUserRepo.getUser.mockResolvedValue(null);
 
-      await expect(userService.getUser('1')).rejects.toThrow(NotFoundException);
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
+      await expect(service.getUser('non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(userRepo.getUser).toHaveBeenCalledWith('non-existent-id');
     });
   });
 
   describe('getUsers', () => {
-    it('should return an array of users', async () => {
-      const users = [
-        { userId: '1', firstName: 'John', lastName: 'Doe' },
-        { userId: '2', firstName: 'Jane', lastName: 'Smith' },
-      ];
-      const expectedResponse = users.map((user) => {
-        const response = new GetUserResponseDto();
-        response.userId = user.userId;
-        response.firstName = user.firstName;
-        response.lastName = user.lastName;
-        return response;
-      });
+    it('should return an array of user response DTOs', async () => {
+      mockUserRepo.getUsers.mockResolvedValue([mockUser]);
 
-      mockUserRepository.getUsers.mockResolvedValue(users);
+      const result = await service.getUsers();
 
-      const result = await userService.getUsers();
-      expect(result).toEqual(expectedResponse);
-      expect(userRepository.getUsers).toHaveBeenCalled();
+      expect(userRepo.getUsers).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].userId).toBe(mockUser._id);
     });
 
     it('should return an empty array if no users found', async () => {
-      mockUserRepository.getUsers.mockResolvedValue([]);
+      mockUserRepo.getUsers.mockResolvedValue([]);
 
-      const result = await userService.getUsers();
+      const result = await service.getUsers();
+
+      expect(userRepo.getUsers).toHaveBeenCalled();
       expect(result).toEqual([]);
-      expect(userRepository.getUsers).toHaveBeenCalled();
     });
   });
 
   describe('findUsersByClub', () => {
-    it('should return an array of user IDs from a club', async () => {
-      const users = [
-        { userId: '1', firstName: 'John', lastName: 'Doe' },
-        { userId: '2', firstName: 'Jane', lastName: 'Smith' },
-      ];
-      const expectedResponse = users.map((user) => user.userId);
+    it('should return an array of user IDs', async () => {
+      mockUserRepo.findUsersByClub.mockResolvedValue([mockUser]);
 
-      mockUserRepository.findUsersByClub.mockResolvedValue(users);
+      const result = await service.findUsersByClub('Club1');
 
-      const result = await userService.findUsersByClub('Galway');
-      expect(result).toEqual(expectedResponse);
-      expect(userRepository.findUsersByClub).toHaveBeenCalledWith('Galway');
+      expect(userRepo.findUsersByClub).toHaveBeenCalledWith('Club1');
+      expect(result).toEqual([mockUser._id]);
     });
 
-    it('should return an empty array if no users found in the club', async () => {
-      mockUserRepository.findUsersByClub.mockResolvedValue([]);
+    it('should return an empty array if no users found for the club', async () => {
+      mockUserRepo.findUsersByClub.mockResolvedValue([]);
 
-      const result = await userService.findUsersByClub('Galway');
+      const result = await service.findUsersByClub('NonExistentClub');
+
+      expect(userRepo.findUsersByClub).toHaveBeenCalledWith('NonExistentClub');
       expect(result).toEqual([]);
-      expect(userRepository.findUsersByClub).toHaveBeenCalledWith('Galway');
     });
   });
 
-  describe('getUserbyEmail', () => {
+  describe('getUserByEmail', () => {
     it('should return a user by email', async () => {
-      const user = {
-        userId: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-      };
+      mockUserRepo.getUserByEmail.mockResolvedValue(mockUser);
 
-      mockUserRepository.getUserByEmail.mockResolvedValue(user);
+      const result = await service.getUserbyEmail('john.doe@example.com');
 
-      const result = await userService.getUserbyEmail('john.doe@example.com');
-      expect(result).toEqual(user);
-      expect(userRepository.getUserByEmail).toHaveBeenCalledWith(
+      expect(userRepo.getUserByEmail).toHaveBeenCalledWith(
         'john.doe@example.com',
       );
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should return null if user not found by email', async () => {
+      mockUserRepo.getUserByEmail.mockResolvedValue(null);
+
+      const result = await service.getUserbyEmail('nonexistent@example.com');
+
+      expect(userRepo.getUserByEmail).toHaveBeenCalledWith(
+        'nonexistent@example.com',
+      );
+      expect(result).toBeNull();
     });
   });
 
   describe('getUserRole', () => {
-    it('should return true if the user has the specified role', async () => {
-      const user = { userId: '1', role: Role.Admin };
+    it('should return true if user role matches', async () => {
+      mockUserRepo.getUser.mockResolvedValue(mockUser);
 
-      mockUserRepository.getUser.mockResolvedValue(user);
+      const result = await service.getUserRole('user-id', Role.User);
 
-      const result = await userService.getUserRole('1', Role.Admin);
+      expect(userRepo.getUser).toHaveBeenCalledWith('user-id');
       expect(result).toBe(true);
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
     });
 
-    it('should return false if the user does not have the specified role', async () => {
-      const user = { userId: '1', role: Role.User };
+    it('should return false if user role does not match', async () => {
+      mockUserRepo.getUser.mockResolvedValue(mockUser);
 
-      mockUserRepository.getUser.mockResolvedValue(user);
+      const result = await service.getUserRole('user-id', Role.Admin);
 
-      const result = await userService.getUserRole('1', Role.Admin);
+      expect(userRepo.getUser).toHaveBeenCalledWith('user-id');
       expect(result).toBe(false);
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
     });
 
-    it('should throw a NotFoundException if user does not exist', async () => {
-      mockUserRepository.getUser.mockResolvedValue(null);
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockUserRepo.getUser.mockResolvedValue(null);
 
-      await expect(userService.getUserRole('1', Role.Admin)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(userRepository.getUser).toHaveBeenCalledWith('1');
-    });
-  });
-
-  describe('createResponseDto', () => {
-    it('should create and return a GetUserResponseDto', () => {
-      const user = { userId: '1', firstName: 'John', lastName: 'Doe' };
-      const expectedResponse = new GetUserResponseDto();
-      expectedResponse.userId = '1';
-      expectedResponse.firstName = 'John';
-      expectedResponse.lastName = 'Doe';
-
-      const result = userService.createResponseDto(user);
-      expect(result).toEqual(expectedResponse);
+      await expect(
+        service.getUserRole('non-existent-id', Role.User),
+      ).rejects.toThrow(NotFoundException);
+      expect(userRepo.getUser).toHaveBeenCalledWith('non-existent-id');
     });
   });
 });
