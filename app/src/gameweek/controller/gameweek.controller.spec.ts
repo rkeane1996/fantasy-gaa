@@ -143,7 +143,6 @@ describe('GameweekController', () => {
           players: [
             {
               playerId: 'player1',
-              points: [{ pointType: 'SCORED_POINT', pointValue: 1 }],
             },
           ],
           gameweek: 1,
@@ -157,7 +156,6 @@ describe('GameweekController', () => {
           players: [
             {
               playerId: 'player1',
-              points: [{ pointType: 'SCORED_POINT', pointValue: 1 }],
             },
           ],
           gameweek: 1,
@@ -204,7 +202,6 @@ describe('GameweekController', () => {
         players: [
           {
             playerId: 'player1',
-            points: [{ pointType: 'SCORED_POINT', pointValue: 1 }],
           },
         ],
         gameweek: 1,

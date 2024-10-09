@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { TeamController } from './controller/team.controller';
 import { TeamService } from './service/team.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Team, TeamSchema } from './schema/team.schema';
-import { TeamRepository } from './repository/team.repository';
 import { UserModule } from 'src/user/user.module';
+import { Team, TeamSchema } from '../../lib/team/schema/team.schema';
+import { TeamRepository } from '../../lib/team/repository/team.repository';
 
 @Module({
   imports: [
@@ -16,6 +16,5 @@ import { UserModule } from 'src/user/user.module';
   ],
   controllers: [TeamController],
   providers: [TeamService, TeamRepository],
-  exports: [TeamService],
 })
 export class TeamModule {}

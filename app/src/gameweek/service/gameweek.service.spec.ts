@@ -7,7 +7,6 @@ import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { CreateMatchDto } from '../dto/request/create-match.dto';
 import { Gameweek } from '../schema/gameweek.schema';
 import { Match } from '../schema/match.schema';
-import { Points } from '../../../src/points/types/points.type';
 import { County } from '../../../lib/common/enum/counties';
 
 describe('GameweekService', () => {
@@ -144,7 +143,7 @@ describe('GameweekService', () => {
       {
         homeTeam: County.Antrim,
         awayTeam: County.Dublin,
-        players: [{ playerId: 'player1', points: [] }],
+        players: [{ playerId: 'player1' }],
         gameweek: 1,
       },
     ];
@@ -207,35 +206,6 @@ describe('GameweekService', () => {
       );
       expect(result.homeScore).toEqual('1-10');
       expect(result.awayScore).toEqual('0-12');
-    });
-  });
-
-  // Test for updating player points in a match
-  describe('updatePlayerPointsScoredInMatch', () => {
-    const points: Points[] = [{ pointType: 'SCORED_POINT', pointValue: 1 }];
-
-    it('should update player points in a match', async () => {
-      const match = {
-        id: 'match1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Dublin,
-        players: [{ playerId: 'player1', points }],
-        gameweek: 1,
-      } as unknown as Match;
-
-      jest.spyOn(matchRepo, 'updatePlayerPoints').mockResolvedValue(match);
-
-      const result = await service.updatePlayerPointsScoredInMatch(
-        'match1',
-        'player1',
-        points,
-      );
-      expect(matchRepo.updatePlayerPoints).toHaveBeenCalledWith(
-        'match1',
-        'player1',
-        points,
-      );
-      expect(result.players[0].points[0].pointType).toEqual('SCORED_POINT');
     });
   });
 });

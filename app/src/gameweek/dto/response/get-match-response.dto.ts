@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsString } from 'class-validator';
 import { County } from '../../../../lib/common/enum/counties';
-import { Points } from '../../../points/types/points.type';
 
 export class GetMatchResponseDto {
   @ApiProperty({
@@ -42,7 +41,7 @@ export class GetMatchResponseDto {
   players: [
     {
       playerId: string;
-      points: Points[]; // Points earned by the player in this match
+      //points: Points[]; // Points earned by the player in this match
     },
   ];
 

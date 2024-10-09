@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import { County } from '../../../lib/common/enum/counties';
-import { TeamPlayer } from '../schema/team.schema';
+import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
 
 export class TeamTransferDTO {
   @IsString()
@@ -18,20 +18,17 @@ export class TeamTransferDTO {
   @ApiProperty({
     example: [
       {
-        playersTransfered: {
-          playerId: 'r43-gf34-gre',
-          position: 'Forward',
-          county: County.Galway,
-          price: 5,
-          isCaptain: true,
-          isViceCaptain: true,
-          isSub: false,
-        },
-        playerPrice: 23,
+        playerId: 'r43-gf34-gre',
+        position: 'Forward',
+        county: County.Galway,
+        price: 5,
+        isCaptain: true,
+        isViceCaptain: true,
+        isSub: false,
       },
     ],
   })
-  playersIn: TeamPlayer[];
+  playersToAdd: TeamPlayer[];
 
   @IsArray()
   @Type(() => Array<TeamPlayer>)
@@ -39,18 +36,15 @@ export class TeamTransferDTO {
   @ApiProperty({
     example: [
       {
-        playersTransfered: {
-          playerId: 'r43-gf34-gre',
-          position: 'Forward',
-          county: County.Galway,
-          price: 5,
-          isCaptain: true,
-          isViceCaptain: true,
-          isSub: false,
-        },
-        playerPrice: 23,
+        playerId: 'r43-gf34-gre',
+        position: 'Forward',
+        county: County.Galway,
+        price: 5,
+        isCaptain: true,
+        isViceCaptain: true,
+        isSub: false,
       },
     ],
   })
-  playersOut: TeamPlayer[];
+  playersToReplace: TeamPlayer[];
 }

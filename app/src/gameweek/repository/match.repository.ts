@@ -1,7 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateMatchDto } from '../dto/request/create-match.dto';
-import { Points } from '../../../src/points/types/points.type';
 import { Match } from '../schema/match.schema';
 
 export class MatchRepository {
@@ -39,19 +38,19 @@ export class MatchRepository {
     );
   }
 
-  async updatePlayerPoints(
-    playerId: string,
-    matchId: string,
-    points: Points[],
-  ): Promise<Match> {
-    return this.matchModel.findOneAndUpdate(
-      { _id: matchId, 'players.playerId': playerId },
-      {
-        $set: {
-          'players.$.points': points,
-        },
-      },
-      { new: true },
-    );
-  }
+  // async updatePlayerPoints(
+  //   playerId: string,
+  //   matchId: string,
+  //   points: Points[],
+  // ): Promise<Match> {
+  //   return this.matchModel.findOneAndUpdate(
+  //     { _id: matchId, 'players.playerId': playerId },
+  //     {
+  //       $set: {
+  //         'players.$.points': points,
+  //       },
+  //     },
+  //     { new: true },
+  //   );
+  // }
 }
