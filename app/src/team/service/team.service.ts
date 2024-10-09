@@ -1,43 +1,69 @@
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
-import { TeamRepository } from '../repository/team.repository';
 import { NumberOfPlayerPerCounty } from '../constants/number-players-per-county.constant';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
-import { Team, TeamPlayer } from '../schema/team.schema';
 import { County } from '../../../lib/common/enum/counties';
+import { TeamRepository } from '../../../lib/team/repository/team.repository';
+import { Team } from '../../../lib/team/schema/team.schema';
+import { EditTeamInfoDto } from '../dto/edit-team-dto';
+import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
 
 @Injectable()
 export class TeamService {
-  constructor(private readonly teamRepo: TeamRepository) {}
+  constructor(private readonly teamRepository: TeamRepository) {}
 
-  async createTeam(requestdto: CreateTeamDTO) {
-    const { id } = await this.teamRepo.createTeam(requestdto);
-    return id;
+  async createTeam(createTeamDto: CreateTeamDTO) {
+    const team = await this.teamRepository.createTeam(createTeamDto);
+    return team.id;
   }
 
-  async transferPlayers(request: TeamTransferDTO) {
-    const { playersIn, playersOut, teamId } = request;
+  async transferPlayers(teamTransferDto: TeamTransferDTO) {
+    const { playersToAdd, playersToReplace, teamId } = teamTransferDto;
 
-    this.validatePlayerCounts(playersIn, playersOut);
+    const currentTeam = await this.teamRepository.findTeamByTeamId(teamId);
 
-    const currentTeam = await this.teamRepo.getTeamByTeamId(teamId);
-
-    this.validatePlayersOut(playersOut, currentTeam);
-    this.validatePlayersIn(playersIn, playersOut, currentTeam);
-    this.validateTransferBudget(playersIn, playersOut, currentTeam.budget);
-
-    const updatedTeam = await this.teamRepo.transferPlayers(
-      teamId,
-      playersOut,
-      playersIn,
+    this.validatePlayerCounts(playersToAdd, playersToReplace);
+    this.validatePlayersOut(playersToReplace, currentTeam);
+    this.validatePlayersIn(playersToAdd, playersToReplace, currentTeam);
+    const newBudget = this.validateTransferBudget(
+      playersToAdd,
+      playersToReplace,
+      currentTeam.budget,
     );
 
+    const updatedTeam = await this.teamRepository.swapPlayersInTeam(
+      teamId,
+      playersToAdd,
+      playersToReplace,
+      newBudget,
+    );
+
+    return this.createDtoResponse(updatedTeam);
+  }
+
+  async getTeamByUserId(userId: string) {
+    const team = await this.teamRepository.findTeamByUserId(userId);
+    if (!team) {
+      throw new NotFoundException(`Team not found by user id : ${userId}`);
+    }
+    return this.createDtoResponse(team);
+  }
+
+  async getTeamByTeamId(teamId: string) {
+    const team = await this.teamRepository.findTeamByTeamId(teamId);
+    if (!team) {
+      throw new NotFoundException(`Team not found by team id : ${teamId}`);
+    }
+    return this.createDtoResponse(team);
+  }
+
+  async updateTeamInfo(editTeamInfo: EditTeamInfoDto) {
+    const updatedTeam = await this.teamRepository.editTeam(editTeamInfo);
     return this.createDtoResponse(updatedTeam);
   }
 
@@ -46,29 +72,30 @@ export class TeamService {
     playersOut: TeamPlayer[],
   ): void {
     if (playersIn.length !== playersOut.length) {
-      throw new HttpException(
+      throw new BadRequestException(
         'The number of players being transferred in must be equal to the number of players being transferred out.',
-        HttpStatus.BAD_REQUEST,
       );
     }
   }
 
   private validatePlayersOut(
-    playersOut: TeamPlayer[],
+    playersToReplace: TeamPlayer[],
     currentTeam: Team,
   ): void {
-    playersOut.forEach((playerOut) => {
-      if (
-        !currentTeam.players.some(
-          (player) => player.playerId === playerOut.playerId,
-        )
-      ) {
-        throw new HttpException(
-          `Player with ID ${playerOut.playerId} is not part of the current team.`,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    });
+    const teamPlayerIds = currentTeam.players.map((player) => player.playerId);
+
+    const invalidPlayers = playersToReplace.filter(
+      (playerToReplace) => !teamPlayerIds.includes(playerToReplace.playerId),
+    );
+
+    if (invalidPlayers.length > 0) {
+      const invalidIds = invalidPlayers
+        .map((player) => player.playerId)
+        .join(', ');
+      throw new BadRequestException(
+        `Players with the following IDs are not part of the current team: ${invalidIds}.`,
+      );
+    }
   }
 
   private validatePlayersIn(
@@ -94,9 +121,8 @@ export class TeamService {
         (player) => player.county === county,
       );
       if (playersFromCounty.length > NumberOfPlayerPerCounty) {
-        throw new HttpException(
+        throw new BadRequestException(
           `Cannot add player from ${county}. Maximum of ${NumberOfPlayerPerCounty} players from ${county} allowed.`,
-          HttpStatus.BAD_REQUEST,
         );
       }
     });
@@ -106,7 +132,7 @@ export class TeamService {
     playersIn: TeamPlayer[],
     playersOut: TeamPlayer[],
     teamBudget: number,
-  ): void {
+  ): number {
     const totalPriceForPlayersOut = playersOut.reduce(
       (sum, player) => sum + player.price,
       0,
@@ -117,55 +143,28 @@ export class TeamService {
     );
 
     if (totalPriceForPlayersIn > totalPriceForPlayersOut + teamBudget) {
-      throw new HttpException(
+      throw new BadRequestException(
         'Not enough budget to carry out this transfer.',
-        HttpStatus.BAD_REQUEST,
       );
     }
-  }
 
-  async getTeamByUserId(userId: string) {
-    const team = await this.teamRepo.getTeamByUserId(userId);
-    if (!team) {
-      throw new NotFoundException(`Team no found by user id : ${userId}`);
-    }
-    return this.createDtoResponse(team);
-  }
-
-  async getTeamByTeamId(teamId: string) {
-    const team = await this.teamRepo.getTeamByTeamId(teamId);
-    if (!team) {
-      throw new NotFoundException(`Team no found by team id : ${teamId}`);
-    }
-    return this.createDtoResponse(team);
-  }
-
-  async getTeamByPlayerId(playerId: string) {
-    const teams = await this.teamRepo.getTeamByPlayerId(playerId);
-    return teams.map((team) => this.createDtoResponse(team));
-  }
-
-  async updatePoints(
-    teamId: string,
-    gameweekNumber: number,
-    gamweekPoints: number,
-  ) {
-    const team = await this.teamRepo.updatePoints(
-      teamId,
-      gameweekNumber,
-      gamweekPoints,
+    const newBudget = parseFloat(
+      (teamBudget + totalPriceForPlayersOut - totalPriceForPlayersIn).toFixed(
+        2,
+      ),
     );
-    return this.createDtoResponse(team);
+    return newBudget;
   }
 
-  createDtoResponse(t: Team) {
+  private createDtoResponse(t: Team) {
     const team = new GetTeamResponseDto();
-    team.teamId = t._id;
+    team.teamId = t.id;
     team.userId = t.userId;
-    team.teamName = t.teamName;
+    team.teamInfo = t.teamInfo;
     team.players = t.players;
-    team.gameweekPoints = t.gameweek;
+    team.budget = t.budget;
     team.totalPoints = t.totalPoints;
+    team.transfers = t.transfers;
     return team;
   }
 }

@@ -12,7 +12,6 @@ import { CreateMatchDto } from '../dto/request/create-match.dto';
 import { Match } from '../schema/match.schema';
 import { plainToInstance } from 'class-transformer';
 import { GetMatchResponseDto } from '../dto/response/get-match-response.dto';
-import { Points } from '../../../src/points/types/points.type';
 import { GameweekActiveResposneDto } from '../dto/response/gameweek-active-response.dto';
 
 @Injectable()
@@ -103,13 +102,13 @@ export class GameweekService {
     return this.convertToGetMatchResponse(matchUpdated);
   }
 
-  async updatePlayerPointsScoredInMatch(
-    playerId: string,
-    matchId: string,
-    points: Points[],
-  ) {
-    return await this.matchRepo.updatePlayerPoints(playerId, matchId, points);
-  }
+  // async updatePlayerPointsScoredInMatch(
+  //  playerId: string,
+  // matchId: string,
+  //points: Points[],
+  //) {
+  //return await this.matchRepo.updatePlayerPoints(playerId, matchId, points);
+  // }
 
   private convertToGetMatchResponse(match: Match): GetMatchResponseDto {
     return plainToInstance(GetMatchResponseDto, {

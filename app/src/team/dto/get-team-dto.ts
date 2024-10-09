@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TeamPlayer } from '../schema/team.schema';
 import { Position } from '../../../lib/common/enum/position';
 import { County } from '../../../lib/common/enum/counties';
+import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
+import { TeamInfo } from '../../../lib/team/schema/teamInfo.entity';
+import { TeamTransfer } from '../../../lib/team/schema/teamTransfer.entity';
 
 export class GetTeamResponseDto {
   @ApiProperty({
@@ -15,9 +17,13 @@ export class GetTeamResponseDto {
   userId: string;
 
   @ApiProperty({
-    example: 'Best Team Ever',
+    example: {
+      teamName: 'Test team',
+      jerseyColour: 'Blue',
+      shortsColour: 'White',
+    },
   })
-  teamName: string;
+  teamInfo: TeamInfo;
 
   @ApiProperty({
     example: [
@@ -44,41 +50,5 @@ export class GetTeamResponseDto {
   })
   totalPoints: number;
 
-  @ApiProperty({
-    example: [
-      {
-        gameweek: 1,
-        players: [
-          {
-            playerId: 'playerid',
-            position: Position.DEFENDER,
-            county: County.Donegal,
-            price: 12.5,
-            isCaptain: false,
-            isViceCaptain: false,
-            isSub: false,
-          },
-        ],
-        points: 4,
-      },
-      {
-        gameweek: 2,
-        players: [
-          {
-            playerId: 'playerid',
-            position: Position.DEFENDER,
-            county: County.Donegal,
-            price: 12.5,
-            isCaptain: false,
-            isViceCaptain: false,
-            isSub: false,
-          },
-        ],
-        points: 4,
-      },
-    ],
-  })
-  gameweekPoints: [
-    { gameweek: number; players: Array<TeamPlayer>; points: number },
-  ];
+  transfers: TeamTransfer;
 }

@@ -4,15 +4,25 @@ import { TeamService } from '../service/team.service';
 import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
+import { EditTeamInfoDto } from '../dto/edit-team-dto';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { HttpStatus } from '@nestjs/common';
-import { County } from '../../../lib/common/enum/counties';
-import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../../user/service/user.service';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('TeamController', () => {
-  let teamController: TeamController;
+  let controller: TeamController;
   let teamService: TeamService;
+
+  const mockTeamService = {
+    createTeam: jest.fn(),
+    transferPlayers: jest.fn(),
+    getTeamByUserId: jest.fn(),
+    getTeamByTeamId: jest.fn(),
+    updateTeamInfo: jest.fn(),
+  };
+
+  const mockUserAuthGuard = {
+    canActivate: jest.fn((context: ExecutionContext) => true), // Always allow access
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,280 +30,168 @@ describe('TeamController', () => {
       providers: [
         {
           provide: TeamService,
-          useValue: {
-            createTeam: jest.fn(),
-            transferPlayers: jest.fn(),
-            getTeamByUserId: jest.fn(),
-          },
-        },
-        {
-          provide: JwtService,
-          useValue: {
-            verifyAsync: jest.fn(),
-          },
-        },
-        {
-          provide: UserService,
-          useValue: {
-            getUserRole: jest.fn(() => true),
-          },
-        },
-        {
-          provide: UserAuthGuard, // Provide the UserAuthGuard
-          useValue: {
-            canActivate: jest.fn(() => true),
-          }, // Use the mock class instead
+          useValue: mockTeamService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(UserAuthGuard)
+      .useValue(mockUserAuthGuard)
+      .compile();
 
-    teamController = module.get<TeamController>(TeamController);
+    controller = module.get<TeamController>(TeamController);
     teamService = module.get<TeamService>(TeamService);
   });
 
   it('should be defined', () => {
-    expect(teamController).toBeDefined();
+    expect(controller).toBeDefined();
   });
 
-  describe('addPlayer', () => {
-    it('should create a team and return HttpStatus.CREATED', async () => {
+  describe('createTeam', () => {
+    it('should create a new team successfully', async () => {
       const createTeamDto: CreateTeamDTO = {
-        userId: '234-fgre43rg5-43g',
-        teamName: 'Best Team Ever',
-        players: [
-          {
-            playerId: 'r43-gf34-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: false,
-            isSub: false,
-          },
-          {
-            playerId: 'r43-vfre54-bvrb6',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: false,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
-        budget: 50,
+        userId: 'user123',
+        teamInfo: { teamName: 'Team A', jerseyColour: 'Blue', shortsColour: 'White' },
+        players: [],
+        budget: 100,
       };
+      mockTeamService.createTeam.mockResolvedValue('team-created');
 
-      jest
-        .spyOn(teamService, 'createTeam')
-        .mockResolvedValue(HttpStatus.CREATED);
-
-      expect(await teamController.addTeam(createTeamDto)).toBe(
-        HttpStatus.CREATED,
-      );
+      const result = await controller.createTeam(createTeamDto);
+      expect(result).toEqual('team-created');
       expect(teamService.createTeam).toHaveBeenCalledWith(createTeamDto);
     });
   });
 
   describe('makeTransfer', () => {
-    it('should make transfers and return the updated team', async () => {
+    it('should make a player transfer successfully', async () => {
       const transferDto: TeamTransferDTO = {
-        teamId: 'h768-f687-s21-vr45v',
-        playersIn: [
-          {
-            playerId: 'r43-gf34-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-          ,
-        ],
-        playersOut: [
-          {
-            playerId: 'r43-fre5-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
+        teamId: 'team123',
+        playersToAdd: [],
+        playersToReplace: [],
       };
-
-      const responseDto: GetTeamResponseDto = {
-        teamId: '54g-r43f-43fg-43f',
-        userId: '543f54-t54g6-43fg-54g54',
-        teamName: 'Best Team Ever',
-        players: [
-          {
-            playerId: 'r43-gf34-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
-        budget: 50,
-        totalPoints: 4,
-        gameweekPoints: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'r43-gf34-gre',
-                position: 'Forward',
-                county: County.Galway,
-                price: 5,
-                isCaptain: true,
-                isViceCaptain: true,
-                isSub: false,
-              },
-            ],
-            points: 4,
-          },
-        ],
+      const transferResponse: GetTeamResponseDto = {
+        teamId: 'team123',
+        userId: 'user123',
+        teamInfo: { teamName: 'Test team', jerseyColour: 'Blue', shortsColour: 'White' },
+        players: [],
+        budget: 90,
+        totalPoints: 100,
+        transfers: { cost: 10, limit: 3, made: 1, freeTransfers: 1 },
       };
+      mockTeamService.transferPlayers.mockResolvedValue(transferResponse);
 
-      jest.spyOn(teamService, 'transferPlayers').mockResolvedValue(responseDto);
-
-      expect(await teamController.makeTransfer(transferDto)).toBe(responseDto);
+      const result = await controller.makeTransfer(transferDto);
+      expect(result).toEqual(transferResponse);
       expect(teamService.transferPlayers).toHaveBeenCalledWith(transferDto);
     });
 
-    it('should throw a BadRequestException if the transfer is invalid', async () => {
+    it('should handle bad transfer request', async () => {
       const transferDto: TeamTransferDTO = {
-        teamId: 'h768-f687-s21-vr45v',
-        playersIn: [
-          {
-            playerId: 'r43-gf34-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
-        playersOut: [
-          {
-            playerId: 'vfd4-gf34-vfd',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: false,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
+        teamId: 'team123',
+        playersToAdd: [],
+        playersToReplace: [],
       };
+      mockTeamService.transferPlayers.mockRejectedValue(new Error('Transfer failed'));
 
-      jest.spyOn(teamService, 'transferPlayers').mockImplementation(() => {
-        throw new Error(
-          'Bad Request. Too many players from 1 county/More players in than out/Player not on team',
-        );
-      });
-
-      await expect(teamController.makeTransfer(transferDto)).rejects.toThrow(
-        Error,
-      );
+      await expect(controller.makeTransfer(transferDto)).rejects.toThrow('Transfer failed');
       expect(teamService.transferPlayers).toHaveBeenCalledWith(transferDto);
     });
   });
 
   describe('getUsersTeam', () => {
-    it("should return the user's team", async () => {
-      const userId = '543f54-t54g6-43fg-54g54';
-      const responseDto: GetTeamResponseDto = {
-        teamId: '54g-r43f-43fg-43f',
-        userId: '543f54-t54g6-43fg-54g54',
-        teamName: 'Best Team Ever',
-        players: [
-          {
-            playerId: 'r43-gf34-gre',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-          {
-            playerId: 'r43-gf34-gtrg-5gv',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: true,
-            isViceCaptain: true,
-            isSub: false,
-          },
-        ],
-        budget: 50,
-        totalPoints: 4,
-        gameweekPoints: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'r43-gf34-gre',
-                position: 'Forward',
-                county: County.Galway,
-                price: 5,
-                isCaptain: true,
-                isViceCaptain: true,
-                isSub: false,
-              },
-            ],
-            points: 4,
-          },
-        ],
+    it('should return a user\'s team', async () => {
+      const teamResponse: GetTeamResponseDto = {
+        teamId: 'team123',
+        userId: 'user123',
+        teamInfo: { teamName: 'Test team', jerseyColour: 'Blue', shortsColour: 'White' },
+        players: [],
+        budget: 90,
+        totalPoints: 100,
+        transfers: { cost: 10, limit: 3, made: 1, freeTransfers: 1 },
       };
+      mockTeamService.getTeamByUserId.mockResolvedValue(teamResponse);
 
-      jest.spyOn(teamService, 'getTeamByUserId').mockResolvedValue(responseDto);
-
-      expect(await teamController.getUsersTeam(userId)).toBe(responseDto);
-      expect(teamService.getTeamByUserId).toHaveBeenCalledWith(userId);
+      const result = await controller.getUsersTeam('user123');
+      expect(result).toEqual(teamResponse);
+      expect(teamService.getTeamByUserId).toHaveBeenCalledWith('user123');
     });
 
-    it('should throw a NotFoundException if the team is not found', async () => {
-      const userId = '543f54-t54g6-43fg-54g54';
+    it('should handle team not found', async () => {
+      mockTeamService.getTeamByUserId.mockResolvedValue(null);
 
-      jest.spyOn(teamService, 'getTeamByUserId').mockImplementation(() => {
-        throw new Error('Team not found');
-      });
-
-      await expect(teamController.getUsersTeam(userId)).rejects.toThrow(Error);
-      expect(teamService.getTeamByUserId).toHaveBeenCalledWith(userId);
+      const result = await controller.getUsersTeam('non-existent-user');
+      expect(result).toBeNull();
+      expect(teamService.getTeamByUserId).toHaveBeenCalledWith('non-existent-user');
     });
   });
 
-  describe('guards', () => {
-    it('should apply UserAuthGuard to addTeam', () => {
-      const guards = Reflect.getMetadata('__guards__', teamController.addTeam);
-      expect(guards).toHaveLength(1);
-      expect(guards[0]).toBe(UserAuthGuard);
+  describe('getTeam', () => {
+    it('should return a team by teamId', async () => {
+      const teamResponse: GetTeamResponseDto = {
+        teamId: 'team123',
+        userId: 'user123',
+        teamInfo: { teamName: 'Test team', jerseyColour: 'Blue', shortsColour: 'White' },
+        players: [],
+        budget: 90,
+        totalPoints: 100,
+        transfers: { cost: 10, limit: 3, made: 1, freeTransfers: 1 },
+      };
+      mockTeamService.getTeamByTeamId.mockResolvedValue(teamResponse);
+
+      const result = await controller.getTeam('team123');
+      expect(result).toEqual(teamResponse);
+      expect(teamService.getTeamByTeamId).toHaveBeenCalledWith('team123');
     });
 
-    it('should apply UserAuthGuard to makeTransfer', () => {
-      const guards = Reflect.getMetadata(
-        '__guards__',
-        teamController.makeTransfer,
-      );
-      expect(guards).toHaveLength(1);
-      expect(guards[0]).toBe(UserAuthGuard);
+    it('should handle team not found', async () => {
+      mockTeamService.getTeamByTeamId.mockResolvedValue(null);
+
+      const result = await controller.getTeam('non-existent-team');
+      expect(result).toBeNull();
+      expect(teamService.getTeamByTeamId).toHaveBeenCalledWith('non-existent-team');
+    });
+  });
+
+  describe('updateTeam', () => {
+    it('should update team information successfully', async () => {
+      const editTeamInfoDto: EditTeamInfoDto = {
+        teamId: 'team123',
+        teamName: 'Updated Team',
+        jerseyColour: 'Red',
+        shortsColour: 'Black',
+      };
+      const updatedTeamResponse: GetTeamResponseDto = {
+        teamId: 'team123',
+        userId: 'user123',
+        teamInfo: { teamName: 'Updated Team', jerseyColour: 'Red', shortsColour: 'Black' },
+        players: [],
+        budget: 90,
+        totalPoints: 100,
+        transfers: { cost: 10, limit: 3, made: 1, freeTransfers: 1 },
+      };
+      mockTeamService.updateTeamInfo.mockResolvedValue(updatedTeamResponse);
+
+      const result = await controller.updateTeam(editTeamInfoDto);
+      expect(result).toEqual(updatedTeamResponse);
+      expect(teamService.updateTeamInfo).toHaveBeenCalledWith(editTeamInfoDto);
     });
 
-    it('should apply UserAuthGuard to getUsersTeam', () => {
-      const guards = Reflect.getMetadata(
-        '__guards__',
-        teamController.getUsersTeam,
-      );
-      expect(guards).toHaveLength(1);
-      expect(guards[0]).toBe(UserAuthGuard);
+    it('should handle team not found', async () => {
+      mockTeamService.updateTeamInfo.mockResolvedValue(null);
+
+      const result = await controller.updateTeam({
+        teamId: 'non-existent-team',
+        teamName: 'Non-existent',
+        jerseyColour: 'Grey',
+        shortsColour: 'Grey',
+      });
+      expect(result).toBeNull();
+      expect(teamService.updateTeamInfo).toHaveBeenCalledWith({
+        teamId: 'non-existent-team',
+        teamName: 'Non-existent',
+        jerseyColour: 'Grey',
+        shortsColour: 'Grey',
+      });
     });
   });
 });

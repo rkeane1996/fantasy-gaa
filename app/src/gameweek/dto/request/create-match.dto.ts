@@ -1,6 +1,5 @@
 import { IsEnum, IsNumber } from 'class-validator';
 import { County } from '../../../../lib/common/enum/counties';
-import { Points } from '../../../points/types/points.type';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMatchDto {
@@ -35,7 +34,7 @@ export class CreateMatchDto {
   players: [
     {
       playerId: string;
-      points: Points[]; // Points earned by the player in this match
+      //points: Points[]; // Points earned by the player in this match
     },
   ];
 

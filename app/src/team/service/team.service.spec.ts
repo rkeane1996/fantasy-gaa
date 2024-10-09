@@ -1,25 +1,72 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TeamService } from './team.service';
-import { TeamRepository } from '../repository/team.repository';
-import { NotFoundException, HttpException } from '@nestjs/common';
+import { TeamRepository } from '../../../lib/team/repository/team.repository';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
+import { EditTeamInfoDto } from '../dto/edit-team-dto';
+import { Team } from '../../../lib/team/schema/team.schema';
+import { GetTeamResponseDto } from '../dto/get-team-dto';
+import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
 import { County } from '../../../lib/common/enum/counties';
-import { Team } from '../schema/team.schema';
-import { Position } from '../../../lib/common/enum/position';
+
+// Mock constants
+const mockTeamPlayer: TeamPlayer = {
+  playerId: 'player-id-1',
+  position: 'Forward',
+  county: County.Galway,
+  price: 10,
+  isCaptain: true,
+  isViceCaptain: false,
+  isSub: false,
+};
+
+const mockTeam: any = {
+  id: 'team-id-1',
+  userId: 'user-id-1',
+  teamInfo: {
+    teamName: 'TestTeam',
+    jerseyColour: 'Blue',
+    shortsColour: 'White',
+  },
+  players: [mockTeamPlayer],
+  budget: 100,
+  totalPoints: 50,
+  transfers: {
+    cost: 0,
+    limit: 5,
+    made: 0,
+    freeTransfers: 0,
+  },
+} 
+
+const mockCreateTeamDto: CreateTeamDTO = {
+  userId: 'user-id-1',
+  teamInfo: {
+    teamName: 'TestTeam',
+    jerseyColour: 'Blue',
+    shortsColour: 'White',
+  },
+  players: [mockTeamPlayer],
+  budget: 100,
+};
+
+const mockTeamTransferDto: TeamTransferDTO = {
+  teamId: 'team-id-1',
+  playersToAdd: [mockTeamPlayer],
+  playersToReplace: [mockTeamPlayer],
+};
+
+const mockEditTeamInfoDto: EditTeamInfoDto = {
+  teamId: 'team-id-1',
+  teamName: 'UpdatedTestTeam',
+  jerseyColour: 'Red',
+  shortsColour: 'Black',
+};
 
 describe('TeamService', () => {
   let service: TeamService;
-  let teamRepo: TeamRepository;
-
-  const mockTeamRepo = {
-    createTeam: jest.fn(),
-    getTeamByTeamId: jest.fn(),
-    transferPlayers: jest.fn(),
-    getTeamByUserId: jest.fn(),
-    getTeamByPlayerId: jest.fn(),
-    updatePoints: jest.fn(),
-  };
+  let teamRepository: TeamRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -27,238 +74,128 @@ describe('TeamService', () => {
         TeamService,
         {
           provide: TeamRepository,
-          useValue: mockTeamRepo,
+          useValue: {
+            createTeam: jest.fn(),
+            findTeamByTeamId: jest.fn(),
+            findTeamByUserId: jest.fn(),
+            swapPlayersInTeam: jest.fn(),
+            editTeam: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<TeamService>(TeamService);
-    teamRepo = module.get<TeamRepository>(TeamRepository);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+    teamRepository = module.get<TeamRepository>(TeamRepository);
   });
 
   describe('createTeam', () => {
-    it('should create a new team and return the team id', async () => {
-      const createTeamDto: CreateTeamDTO = {
-        userId: '123',
-        teamName: 'Test Team',
-        players: [],
-        budget: 100,
-      };
-      mockTeamRepo.createTeam.mockResolvedValue({ id: 'team123' });
+    it('should create a team and return the team ID', async () => {
+      jest.spyOn(teamRepository, 'createTeam').mockResolvedValue(mockTeam);
 
-      const result = await service.createTeam(createTeamDto);
+      const result = await service.createTeam(mockCreateTeamDto);
 
-      expect(teamRepo.createTeam).toHaveBeenCalledWith(createTeamDto);
-      expect(result).toBe('team123');
+      expect(teamRepository.createTeam).toHaveBeenCalledWith(mockCreateTeamDto);
+      expect(result).toBe(mockTeam.id);
     });
   });
 
-  describe('getTeamByTeamId', () => {
-    it('should return a team by teamId', async () => {
-      const team = {
-        _id: 'team123',
-        userId: 'user123',
-        teamName: 'Test Team',
-        players: [],
-        budget: 100,
-        totalPoints: 0,
-        gameweek: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'playerid',
-                county: County.Galway,
-                isCaptain: false,
-                isSub: false,
-                isViceCaptain: true,
-                position: Position.DEFENDER,
-                price: 12.3,
-              },
-            ],
-            points: 23,
-          },
-        ],
-      } as unknown as Team;
-      mockTeamRepo.getTeamByTeamId.mockResolvedValue(team);
+  describe('transferPlayers', () => {
+    it('should transfer players and return the updated team DTO', async () => {
+      jest.spyOn(teamRepository, 'findTeamByTeamId').mockResolvedValue(mockTeam);
+      jest.spyOn(teamRepository, 'swapPlayersInTeam').mockResolvedValue(mockTeam);
 
-      const result = await service.getTeamByTeamId('team123');
+      const result = await service.transferPlayers(mockTeamTransferDto);
 
-      expect(teamRepo.getTeamByTeamId).toHaveBeenCalledWith('team123');
-      expect(result.teamId).toBe(team._id);
+      expect(teamRepository.findTeamByTeamId).toHaveBeenCalledWith('team-id-1');
+      expect(teamRepository.swapPlayersInTeam).toHaveBeenCalled();
+      expect(result).toEqual(expect.any(GetTeamResponseDto));
     });
 
-    it('should throw NotFoundException if team not found', async () => {
-      mockTeamRepo.getTeamByTeamId.mockResolvedValue(null);
+    it('should throw BadRequestException when player counts do not match', async () => {
+      const invalidTransferDto = { ...mockTeamTransferDto, playersToAdd: [] };
 
-      await expect(service.getTeamByTeamId('team123')).rejects.toThrow(
+      await expect(service.transferPlayers(invalidTransferDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if player to replace is not in the current team', async () => {
+      jest.spyOn(teamRepository, 'findTeamByTeamId').mockResolvedValue(mockTeam);
+
+      const invalidReplaceDto = {
+        ...mockTeamTransferDto,
+        playersToReplace: [{ ...mockTeamPlayer, playerId: 'invalid-id' }],
+      };
+
+      await expect(service.transferPlayers(invalidReplaceDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if transfer exceeds budget', async () => {
+      jest.spyOn(teamRepository, 'findTeamByTeamId').mockResolvedValue({
+        ...mockTeam,
+        budget: 1,
+      });
+
+      const expensivePlayerDto = {
+        ...mockTeamTransferDto,
+        playersToAdd: [{ ...mockTeamPlayer, price: 100 }],
+      };
+
+      await expect(service.transferPlayers(expensivePlayerDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('getTeamByUserId', () => {
+    it('should return a team by userId', async () => {
+      jest.spyOn(teamRepository, 'findTeamByUserId').mockResolvedValue(mockTeam);
+
+      const result = await service.getTeamByUserId('user-id-1');
+
+      expect(teamRepository.findTeamByUserId).toHaveBeenCalledWith('user-id-1');
+      expect(result).toEqual(expect.any(GetTeamResponseDto));
+    });
+
+    it('should throw NotFoundException if team is not found by userId', async () => {
+      jest.spyOn(teamRepository, 'findTeamByUserId').mockResolvedValue(null);
+
+      await expect(service.getTeamByUserId('user-id-1')).rejects.toThrow(
         NotFoundException,
       );
     });
   });
 
-  describe('transferPlayers', () => {
-    it('should transfer players and return updated team', async () => {
-      const team = {
-        _id: 'team123',
-        userId: 'user123',
-        teamName: 'Test Team',
-        players: [],
-        budget: 100,
-        totalPoints: 0,
-        gameweek: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'playerid',
-                county: County.Galway,
-                isCaptain: false,
-                isSub: false,
-                isViceCaptain: true,
-                position: Position.DEFENDER,
-                price: 12.3,
-              },
-            ],
-            points: 23,
-          },
-        ],
-      } as unknown as Team;
+  describe('getTeamByTeamId', () => {
+    it('should return a team by teamId', async () => {
+      jest.spyOn(teamRepository, 'findTeamByTeamId').mockResolvedValue(mockTeam);
 
-      const transferDto: TeamTransferDTO = {
-        teamId: 'team123',
-        playersIn: [],
-        playersOut: [],
-      };
+      const result = await service.getTeamByTeamId('team-id-1');
 
-      mockTeamRepo.getTeamByTeamId.mockResolvedValue(team);
-      mockTeamRepo.transferPlayers.mockResolvedValue(team);
-
-      const result = await service.transferPlayers(transferDto);
-
-      expect(teamRepo.getTeamByTeamId).toHaveBeenCalledWith('team123');
-      expect(teamRepo.transferPlayers).toHaveBeenCalledWith(
-        'team123',
-        transferDto.playersOut,
-        transferDto.playersIn,
-      );
-      expect(result.teamId).toBe(team._id);
+      expect(teamRepository.findTeamByTeamId).toHaveBeenCalledWith('team-id-1');
+      expect(result).toEqual(expect.any(GetTeamResponseDto));
     });
 
-    it('should throw an error if players in and out count does not match', async () => {
-      const transferDto: TeamTransferDTO = {
-        teamId: 'team123',
-        playersIn: [
-          {
-            playerId: 'p1',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: false,
-            isViceCaptain: false,
-            isSub: false,
-          },
-        ],
-        playersOut: [],
-      };
+    it('should throw NotFoundException if team is not found by teamId', async () => {
+      jest.spyOn(teamRepository, 'findTeamByTeamId').mockResolvedValue(null);
 
-      await expect(service.transferPlayers(transferDto)).rejects.toThrow(
-        HttpException,
-      );
-    });
-
-    it('should throw an error if player out is not in the current team', async () => {
-      const team = {
-        _id: 'team123',
-        userId: 'user123',
-        teamName: 'Test Team',
-        players: [],
-        budget: 100,
-        totalPoints: 0,
-        gameweek: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'playerid',
-                county: County.Galway,
-                isCaptain: false,
-                isSub: false,
-                isViceCaptain: true,
-                position: Position.DEFENDER,
-                price: 12.3,
-              },
-            ],
-            points: 23,
-          },
-        ],
-      } as unknown as Team;
-
-      const transferDto: TeamTransferDTO = {
-        teamId: 'team123',
-        playersIn: [],
-        playersOut: [
-          {
-            playerId: 'p1',
-            position: 'Forward',
-            county: County.Galway,
-            price: 5,
-            isCaptain: false,
-            isViceCaptain: false,
-            isSub: false,
-          },
-        ],
-      };
-
-      mockTeamRepo.getTeamByTeamId.mockResolvedValue(team);
-
-      await expect(service.transferPlayers(transferDto)).rejects.toThrow(
-        HttpException,
+      await expect(service.getTeamByTeamId('team-id-1')).rejects.toThrow(
+        NotFoundException,
       );
     });
   });
 
-  describe('updatePoints', () => {
-    it('should update the team points and return the updated team', async () => {
-      const team = {
-        _id: 'team123',
-        userId: 'user123',
-        teamName: 'Test Team',
-        players: [],
-        budget: 100,
-        totalPoints: 0,
-        gameweek: [
-          {
-            gameweek: 1,
-            players: [
-              {
-                playerId: 'playerid',
-                county: County.Galway,
-                isCaptain: false,
-                isSub: false,
-                isViceCaptain: true,
-                position: Position.DEFENDER,
-                price: 12.3,
-              },
-            ],
-            points: 23,
-          },
-        ],
-      } as unknown as Team;
-      mockTeamRepo.updatePoints.mockResolvedValue(team);
+  describe('updateTeamInfo', () => {
+    it('should update a team\'s info and return the updated team DTO', async () => {
+      jest.spyOn(teamRepository, 'editTeam').mockResolvedValue(mockTeam);
 
-      const result = await service.updatePoints('team123', 1, 10);
+      const result = await service.updateTeamInfo(mockEditTeamInfoDto);
 
-      expect(teamRepo.updatePoints).toHaveBeenCalledWith('team123', 1, 10);
-      expect(result.teamId).toBe(team._id);
+      expect(teamRepository.editTeam).toHaveBeenCalledWith(mockEditTeamInfoDto);
+      expect(result).toEqual(expect.any(GetTeamResponseDto));
     });
   });
 });

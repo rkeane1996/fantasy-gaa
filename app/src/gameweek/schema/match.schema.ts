@@ -1,6 +1,6 @@
 import { SchemaFactory, Prop, Schema } from '@nestjs/mongoose';
 import { County } from '../../../lib/common/enum/counties';
-import { Points } from '../../../src/points/types/points.type';
+
 import { Document } from 'mongoose';
 
 @Schema()
@@ -21,7 +21,7 @@ export class Match extends Document {
   players: [
     {
       playerId: string;
-      points: Points[]; // Points earned by the player in this match
+      //points: Points[]; // Points earned by the player in this match
     },
   ];
 

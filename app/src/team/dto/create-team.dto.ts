@@ -1,7 +1,9 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsObject, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { TeamPlayer } from '../schema/team.schema';
+import { TeamInfo } from '../../../lib/team/schema/teamInfo.entity';
+import { County } from '../../../lib/common/enum/counties';
+import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
 
 export class CreateTeamDTO {
   @ApiProperty({
@@ -12,17 +14,23 @@ export class CreateTeamDTO {
   userId: string;
 
   @ApiProperty({
-    example: 'Best Team Ever',
+    example: {
+      teamName: 'TestTeam',
+      jerseyColour: 'Blue',
+      shortsColour: 'White',
+    },
   })
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
-  teamName: string;
+  teamInfo: TeamInfo;
 
   @ApiProperty({
     example: [
       {
         playerId: 'r43-gf34-gre',
         position: 'Forward',
+        county: County.Galway,
+        price: 12.5,
         isCaptain: true,
         isViceCaptain: true,
         isSub: false,
