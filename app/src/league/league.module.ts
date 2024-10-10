@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { LeagueController } from './controller/league.controller';
 import { LeagueService } from './service/league.service';
-import { LeagueRepository } from './repository/league.repository';
-import { League, LeagueSchema } from './schema/league.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from 'src/user/user.module';
+import { LeagueRepository } from '../../lib/league/repository/league.repository';
+import { League, LeagueSchema } from '../../lib/league/schema/league.schema';
 
 @Module({
   imports: [

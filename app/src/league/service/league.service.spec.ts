@@ -1,16 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { LeagueService } from './league.service';
-import { LeagueRepository } from '../repository/league.repository';
+import { LeagueRepository } from '../../../lib/league/repository/league.repository';
 import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
+import { NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { League } from '../schema/league.schema';
 
 describe('LeagueService', () => {
-  let service: LeagueService;
-  let leagueRepo: LeagueRepository;
+  let leagueService: LeagueService;
+  let leagueRepository: LeagueRepository;
+
+  const mockLeagueRepository = {
+    createLeague: jest.fn(),
+    findLeagueByCode: jest.fn(),
+    joinLeague: jest.fn(),
+    findLeague: jest.fn(),
+    findTeamsInLeague: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,179 +25,126 @@ describe('LeagueService', () => {
         LeagueService,
         {
           provide: LeagueRepository,
-          useValue: {
-            createLeague: jest.fn(),
-            findLeagueByCode: jest.fn(),
-            joinLeague: jest.fn(),
-            findAllLeagues: jest.fn(),
-            findLeague: jest.fn(),
-            findTeamsInLeague: jest.fn(),
-          },
+          useValue: mockLeagueRepository,
         },
       ],
     }).compile();
 
-    service = module.get<LeagueService>(LeagueService);
-    leagueRepo = module.get<LeagueRepository>(LeagueRepository);
+    leagueService = module.get<LeagueService>(LeagueService);
+    leagueRepository = module.get<LeagueRepository>(LeagueRepository);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Test case for createLeague
   describe('createLeague', () => {
-    it('should create a league and return a GetLeagueResponseDto', async () => {
+    it('should create and return the new league', async () => {
       const createLeagueDto: CreateLeagueDto = {
-        leagueName: 'The Best League',
-        admin: 'admin1',
+        leagueName: 'Test League',
+        admin: 'adminId',
         teams: ['team1', 'team2'],
       };
 
-      const createdLeague = {
-        leagueId: 'league1',
-        leagueName: 'The Best League',
-        admin: 'admin1',
-        teams: ['team1', 'team2'],
-        leagueCode: 'abcd1234',
-        createdAt: new Date(),
-      } as unknown as League;
+      const leagueResponse = { id: 'league123', ...createLeagueDto };
 
-      jest.spyOn(leagueRepo, 'createLeague').mockResolvedValue(createdLeague);
+      mockLeagueRepository.createLeague.mockResolvedValue(leagueResponse);
 
-      const result = await service.createLeague(createLeagueDto);
+      const result = await leagueService.createLeague(createLeagueDto);
 
-      expect(leagueRepo.createLeague).toHaveBeenCalledWith(createLeagueDto);
-      expect(result).toEqual(
-        plainToInstance(GetLeagueResponseDto, { newLeague: createdLeague }),
-      );
+      expect(mockLeagueRepository.createLeague).toHaveBeenCalledWith(createLeagueDto);
+      expect(result).toEqual(leagueResponse);
     });
   });
 
+  // Test case for joinLeague
   describe('joinLeague', () => {
-    it('should join a league if the league exists', async () => {
+    it('should join an existing league and return updated league', async () => {
       const joinLeagueDto: JoinLeagueDto = {
-        leagueCode: 'abcd1234',
+        leagueCode: 'league123',
         teamId: 'team1',
       };
 
-      const existingLeague = {
-        leagueId: 'league1',
-        leagueName: 'The Best League',
-        admin: 'admin1',
-        teams: ['team1', 'team2'],
-        leagueCode: 'abcd1234',
-        createdAt: new Date(),
-      } as unknown as League;
+      const league = { id: 'league123', leagueCode: 'league123', teams: ['team1'] };
+      const updatedLeague = { ...league, teams: ['team1', 'team2'] };
 
-      jest
-        .spyOn(leagueRepo, 'findLeagueByCode')
-        .mockResolvedValue(existingLeague);
-      jest.spyOn(leagueRepo, 'joinLeague').mockResolvedValue(existingLeague);
+      mockLeagueRepository.findLeagueByCode.mockResolvedValue(league);
+      mockLeagueRepository.joinLeague.mockResolvedValue(updatedLeague);
 
-      const result = await service.joinLeague(joinLeagueDto);
+      const result = await leagueService.joinLeague(joinLeagueDto);
 
-      expect(leagueRepo.findLeagueByCode).toHaveBeenCalledWith(
-        joinLeagueDto.leagueCode,
-      );
-      expect(leagueRepo.joinLeague).toHaveBeenCalledWith(joinLeagueDto);
-      expect(result).toEqual(
-        plainToInstance(GetLeagueResponseDto, existingLeague),
-      );
+      expect(mockLeagueRepository.findLeagueByCode).toHaveBeenCalledWith(joinLeagueDto.leagueCode);
+      expect(mockLeagueRepository.joinLeague).toHaveBeenCalledWith(joinLeagueDto);
+      expect(result).toEqual(plainToInstance(GetLeagueResponseDto, updatedLeague));
     });
 
-    it('should throw NotFoundException if the league does not exist', async () => {
+    it('should throw NotFoundException if the league code is not found', async () => {
       const joinLeagueDto: JoinLeagueDto = {
-        leagueCode: 'abcd1234',
+        leagueCode: 'nonExistingLeagueCode',
         teamId: 'team1',
       };
 
-      jest.spyOn(leagueRepo, 'findLeagueByCode').mockResolvedValue(null);
+      mockLeagueRepository.findLeagueByCode.mockResolvedValue(null);
 
-      await expect(service.joinLeague(joinLeagueDto)).rejects.toThrow(
-        NotFoundException,
+      await expect(leagueService.joinLeague(joinLeagueDto)).rejects.toThrow(
+        new NotFoundException(`League with code ${joinLeagueDto.leagueCode} does not exist`),
       );
-      expect(leagueRepo.findLeagueByCode).toHaveBeenCalledWith(
-        joinLeagueDto.leagueCode,
-      );
+      expect(mockLeagueRepository.findLeagueByCode).toHaveBeenCalledWith(joinLeagueDto.leagueCode);
     });
   });
 
-  describe('getLeagues', () => {
-    it('should return all leagues as GetLeagueResponseDto[]', async () => {
-      const leagues = [
-        {
-          leagueId: 'league1',
-          leagueName: 'The Best League',
-          admin: 'admin1',
-          teams: ['team1', 'team2'],
-          leagueCode: 'abcd1234',
-          createdAt: new Date(),
-        },
-        {
-          leagueId: 'league2',
-          leagueName: 'The Second League',
-          admin: 'admin2',
-          teams: ['team3', 'team4'],
-          leagueCode: 'efgh5678',
-          createdAt: new Date(),
-        },
-      ] as unknown as League[];
-
-      jest.spyOn(leagueRepo, 'findAllLeagues').mockResolvedValue(leagues);
-
-      const result = await service.getLeagues();
-
-      expect(leagueRepo.findAllLeagues).toHaveBeenCalled();
-      expect(result.length).toBe(2);
-      expect(result).toEqual(
-        leagues.map((league) => plainToInstance(GetLeagueResponseDto, league)),
-      );
-    });
-  });
-
+  // Test case for getLeague
   describe('getLeague', () => {
-    it('should return a league by id', async () => {
-      const league = {
-        leagueId: 'league1',
-        leagueName: 'The Best League',
-        admin: 'admin1',
-        teams: ['team1', 'team2'],
-        leagueCode: 'abcd1234',
-        createdAt: new Date(),
-      } as unknown as League;
+    it('should return a league for a valid leagueId', async () => {
+      const leagueId = 'league123';
+      const league = { id: leagueId, leagueName: 'Test League', admin: 'adminId', teams: ['team1'] };
 
-      jest.spyOn(leagueRepo, 'findLeague').mockResolvedValue(league);
+      mockLeagueRepository.findLeague.mockResolvedValue(league);
 
-      const result = await service.getLeague('league1');
+      const result = await leagueService.getLeague(leagueId);
 
-      expect(leagueRepo.findLeague).toHaveBeenCalledWith('league1');
+      expect(mockLeagueRepository.findLeague).toHaveBeenCalledWith(leagueId);
       expect(result).toEqual(plainToInstance(GetLeagueResponseDto, league));
     });
 
-    it('should throw NotFoundException if the league is not found', async () => {
-      jest.spyOn(leagueRepo, 'findLeague').mockResolvedValue(null);
+    it('should throw NotFoundException if league is not found', async () => {
+      const leagueId = 'nonExistingLeagueId';
 
-      await expect(service.getLeague('nonexistentLeague')).rejects.toThrow(
-        NotFoundException,
+      mockLeagueRepository.findLeague.mockResolvedValue(null);
+
+      await expect(leagueService.getLeague(leagueId)).rejects.toThrow(
+        new NotFoundException('League not found'),
       );
-      expect(leagueRepo.findLeague).toHaveBeenCalledWith('nonexistentLeague');
+      expect(mockLeagueRepository.findLeague).toHaveBeenCalledWith(leagueId);
     });
   });
 
+  // Test case for getTeamsInLeague
   describe('getTeamsInLeague', () => {
-    it('should return teams in a league', async () => {
-      const teams = ['team1', 'team2', 'team3'];
+    it('should return a list of teams in the league', async () => {
+      const leagueId = 'league123';
+      const teams = [
+        { id: 'team1', userId: 'user1', players: [], teamInfo: {}, budget: 100, totalPoints: 0, transfers: {} },
+        { id: 'team2', userId: 'user2', players: [], teamInfo: {}, budget: 90, totalPoints: 10, transfers: {} },
+      ];
 
-      jest.spyOn(leagueRepo, 'findTeamsInLeague').mockResolvedValue(teams);
+      mockLeagueRepository.findTeamsInLeague.mockResolvedValue(teams);
 
-      const result = await service.getTeamsInLeague('league1');
+      const result = await leagueService.getTeamsInLeague(leagueId);
 
-      expect(leagueRepo.findTeamsInLeague).toHaveBeenCalledWith('league1');
+      expect(mockLeagueRepository.findTeamsInLeague).toHaveBeenCalledWith(leagueId);
       expect(result).toEqual(teams);
     });
 
-    it('should return an empty array if no teams found', async () => {
-      jest.spyOn(leagueRepo, 'findTeamsInLeague').mockResolvedValue([]);
+    it('should return an empty array if no teams are found in the league', async () => {
+      const leagueId = 'league123';
 
-      const result = await service.getTeamsInLeague('league1');
+      mockLeagueRepository.findTeamsInLeague.mockResolvedValue([]);
 
-      expect(leagueRepo.findTeamsInLeague).toHaveBeenCalledWith('league1');
+      const result = await leagueService.getTeamsInLeague(leagueId);
+
+      expect(mockLeagueRepository.findTeamsInLeague).toHaveBeenCalledWith(leagueId);
       expect(result).toEqual([]);
     });
   });
