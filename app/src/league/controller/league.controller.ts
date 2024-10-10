@@ -5,6 +5,7 @@ import { LeagueService } from '../service/league.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
+import { Team } from 'lib/team/schema/team.schema';
 
 @Controller('league')
 @ApiTags('league')
@@ -35,16 +36,6 @@ export class LeagueController {
     return await this.leagueService.joinLeague(request);
   }
 
-  @Get('all')
-  @ApiOperation({ summary: 'Get all leagues' })
-  @ApiResponse({
-    status: 200,
-    type: [GetLeagueResponseDto],
-  })
-  async getLeagues(): Promise<GetLeagueResponseDto[]> {
-    return await this.leagueService.getLeagues();
-  }
-
   @Get('/')
   @ApiOperation({ summary: 'Get specific league' })
   @ApiResponse({
@@ -63,9 +54,7 @@ export class LeagueController {
     status: 200,
     type: [String],
   })
-  async getTeamsInLeague(
-    @Query('leagueId') leagueId: string,
-  ): Promise<string[]> {
+  async getTeamsInLeague(@Query('leagueId') leagueId: string): Promise<Team[]> {
     return await this.leagueService.getTeamsInLeague(leagueId);
   }
 }

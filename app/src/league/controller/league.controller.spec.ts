@@ -2,15 +2,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LeagueController } from './league.controller';
 import { LeagueService } from '../service/league.service';
 import { CreateLeagueDto } from '../dto/request/create-league.dto';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { UserService } from '../../user/service/user.service';
-import { JwtService } from '@nestjs/jwt';
 import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
+import { Team } from '../../../lib/team/schema/team.schema';
+import { ExecutionContext, NotFoundException } from '@nestjs/common';
+import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
 
 describe('LeagueController', () => {
-  let controller: LeagueController;
-  let service: LeagueService;
+  let leagueController: LeagueController;
+  let leagueService: LeagueService;
+
+  const mockLeagueService = {
+    createLeague: jest.fn(),
+    joinLeague: jest.fn(),
+    getLeague: jest.fn(),
+    getTeamsInLeague: jest.fn(),
+  };
+
+  const mockUserAuthGuard = {
+    canActivate: jest.fn((context: ExecutionContext) => true), // Always allow access
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,157 +29,132 @@ describe('LeagueController', () => {
       providers: [
         {
           provide: LeagueService,
-          useValue: {
-            createLeague: jest.fn(),
-            joinLeague: jest.fn(),
-            getLeagues: jest.fn(),
-            getLeague: jest.fn(),
-            getTeamsInLeague: jest.fn(),
-            getUsersInLeague: jest.fn(),
-          },
-        },
-        {
-          provide: JwtService,
-          useValue: {
-            verifyAsync: jest.fn(),
-          },
-        },
-        {
-          provide: UserService,
-          useValue: {
-            getUserRole: jest.fn(() => true),
-          },
-        },
-        {
-          provide: UserAuthGuard, // Provide the UserAuthGuard
-          useValue: {
-            canActivate: jest.fn(() => true),
-          }, // Use the mock class instead
+          useValue: mockLeagueService,
         },
       ],
-    }) // Mocking the guard to always allow access
-      .compile();
+    }).overrideGuard(UserAuthGuard)
+    .useValue(mockUserAuthGuard)
+    .compile();
 
-    controller = module.get<LeagueController>(LeagueController);
-    service = module.get<LeagueService>(LeagueService);
+    leagueController = module.get<LeagueController>(LeagueController);
+    leagueService = module.get<LeagueService>(LeagueService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-    expect(service).toBeDefined();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  describe('league/create', () => {
-    it('should create a league', async () => {
+  describe('createLeague', () => {
+    it('should call LeagueService.createLeague and return the result', async () => {
       const createLeagueDto: CreateLeagueDto = {
         leagueName: 'Test League',
-        teams: ['vfnvjk-45vrnk-4543', 'ffbhiv-454-vr445'],
-        admin: 'ryrfy4734fhr',
+        admin: 'adminId123',
+        teams: ['team1', 'team2'],
       };
 
-      const getLeagueResponseDto: GetLeagueResponseDto = {
-        leagueId: 'f43-f436-h65g-3f4g',
+      const leagueResponse: GetLeagueResponseDto = {
+        id: 'league123',
         leagueName: 'Test League',
-        teams: ['vfnvjk-45vrnk-4543', 'ffbhiv-454-vr445'],
-        admin: 'ryrfy4734fhr',
-        leagueCode: 'abc123',
-        createdAt: new Date(),
+        admin: 'adminId123',
+        leagueCode: 'code123',
+        teams: ['team1', 'team2'],
       };
 
-      jest
-        .spyOn(service, 'createLeague')
-        .mockResolvedValue(getLeagueResponseDto);
+      mockLeagueService.createLeague.mockResolvedValue(leagueResponse);
 
-      const result = await controller.createLeague(createLeagueDto);
+      const result = await leagueController.createLeague(createLeagueDto);
 
-      expect(result).toEqual(getLeagueResponseDto);
-      expect(service.createLeague).toHaveBeenCalledWith(createLeagueDto);
+      expect(mockLeagueService.createLeague).toHaveBeenCalledWith(createLeagueDto);
+      expect(result).toEqual(leagueResponse);
     });
   });
 
-  describe('league/join', () => {
-    it('user should be able to join league', async () => {
+  describe('joinLeague', () => {
+    it('should call LeagueService.joinLeague with JoinLeagueDto and return result', async () => {
       const joinLeagueDto: JoinLeagueDto = {
-        leagueCode: 'vfnvjk-45vrnk-4543',
-        teamId: 'vjr-5gv54-gt45g-j76',
+        leagueCode: 'league123',
+        teamId: 'team123',
       };
 
-      const getLeagueResponseDto: GetLeagueResponseDto = {
-        leagueId: 'f43-f436-h65g-3f4g',
-        leagueName: 'Test League',
-        teams: ['v4g-6yh6j-6jh-h', 'vjr-5gv54-gt45g-j76'],
-        admin: 'rhgferi54839',
-        leagueCode: 'abc123',
-        createdAt: new Date(),
-      };
+      mockLeagueService.joinLeague.mockResolvedValue({});
 
-      jest.spyOn(service, 'joinLeague').mockResolvedValue(getLeagueResponseDto);
+      const result = await leagueController.joinLeague(joinLeagueDto);
 
-      const result = await controller.joinLeague(joinLeagueDto);
-
-      expect(result).toEqual(getLeagueResponseDto);
-      expect(service.joinLeague).toHaveBeenCalledWith(joinLeagueDto);
+      expect(mockLeagueService.joinLeague).toHaveBeenCalledWith(joinLeagueDto);
+      expect(result).toEqual({});
     });
   });
 
-  describe('league/', () => {
-    it('user should be able to get all leagues', async () => {
-      const getLeagueResponseDto: GetLeagueResponseDto[] = [
+  describe('getLeague', () => {
+    it('should return the league for the given leagueId', async () => {
+      const leagueResponse: GetLeagueResponseDto = {
+        id: 'league123',
+        leagueName: 'Test League',
+        admin: 'adminId123',
+        leagueCode: 'code123',
+        teams: ['team1', 'team2'],
+      };
+
+      mockLeagueService.getLeague.mockResolvedValue(leagueResponse);
+
+      const result = await leagueController.getLeague('league123');
+
+      expect(mockLeagueService.getLeague).toHaveBeenCalledWith('league123');
+      expect(result).toEqual(leagueResponse);
+    });
+
+    it('should throw NotFoundException when league is not found', async () => {
+      mockLeagueService.getLeague.mockRejectedValue(new NotFoundException('League not found'));
+
+      await expect(leagueController.getLeague('invalidLeagueId')).rejects.toThrow(NotFoundException);
+      expect(mockLeagueService.getLeague).toHaveBeenCalledWith('invalidLeagueId');
+    });
+  });
+
+  describe('getTeamsInLeague', () => {
+    it('should return an array of teams in the league', async () => {
+      const mockTeams: Team[] = [
         {
-          leagueId: 'f43-f436-h65g-3f4g',
-          leagueName: 'Test League',
-          teams: ['v4g-6yh6j-6jh-h', 'gtgt-btb-5b6hbny-hnnb'],
-          admin: 'vnr4g59gh',
-          leagueCode: 'abc123',
-          createdAt: new Date(),
+          id: 'team1', userId: 'user1', players: [], teamInfo: {
+            teamName: 'test',
+            jerseyColour: 'white',
+            shortsColour: 'white'
+          }, budget: 100, totalPoints: 0, transfers: {
+            cost: 0,
+            limit: 0,
+            made: 0,
+            freeTransfers: 0
+          },
+          dateCreated: new Date()
         },
         {
-          leagueId: 'f43-d346hb-v54t-3f4g',
-          leagueName: 'Test League 1',
-          teams: ['v4g-6yh6j-54h-h', 'gtgt-btb-5bgg5tg46hbny-hnnb'],
-          admin: 'fheuif54',
-          leagueCode: 'xyz987',
-          createdAt: new Date(),
+          id: 'team2', userId: 'user2', players: [], teamInfo: {
+            teamName: 'test2',
+            jerseyColour: 'blue',
+            shortsColour: 'blue'
+          }, budget: 90, totalPoints: 10, transfers: {
+            cost: 0,
+            limit: 0,
+            made: 0,
+            freeTransfers: 0
+          },
+          dateCreated: new Date()
         },
       ];
 
-      jest.spyOn(service, 'getLeagues').mockResolvedValue(getLeagueResponseDto);
+      mockLeagueService.getTeamsInLeague.mockResolvedValue(mockTeams);
 
-      const result = await controller.getLeagues();
+      const result = await leagueController.getTeamsInLeague('league123');
 
-      expect(result).toEqual(getLeagueResponseDto);
-      expect(service.getLeagues).toHaveBeenCalled();
+      expect(mockLeagueService.getTeamsInLeague).toHaveBeenCalledWith('league123');
+      expect(result).toEqual(mockTeams);
     });
-  });
 
-  describe('league/id', () => {
-    it('user should be able to get specific league', async () => {
-      const getLeagueResponseDto = {
-        leagueId: 'f43-f436-h65g-3f4g',
-        leagueName: 'Test League',
-        teams: ['v4g-6yh6j-6jh-h', 'gtgt-btb-5b6hbny-hnnb'],
-        admin: 'fheuif54',
-        leagueCode: 'xyz987',
-        createdAt: new Date(),
-      };
-      jest.spyOn(service, 'getLeague').mockResolvedValue(getLeagueResponseDto);
+    it('should throw NotFoundException if league has no teams', async () => {
+      mockLeagueService.getTeamsInLeague.mockRejectedValue(new NotFoundException('No teams found'));
 
-      const result = await controller.getLeague('f43-f436-h65g-3f4g');
-
-      expect(result).toEqual(getLeagueResponseDto);
-      expect(service.getLeague).toHaveBeenCalled();
-    });
-  });
-
-  describe('league/id/teams', () => {
-    it('get teams in a league', async () => {
-      const teamIds = ['v4g-6yh6j-6jh-h', 'gtgt-btb-5b6hbny-hnnb'];
-      jest.spyOn(service, 'getTeamsInLeague').mockResolvedValue(teamIds);
-
-      const result = await controller.getTeamsInLeague('f43-f436-h65g-3f4g');
-
-      expect(result).toEqual(teamIds);
-      expect(service.getTeamsInLeague).toHaveBeenCalled();
+      await expect(leagueController.getTeamsInLeague('invalidLeagueId')).rejects.toThrow(NotFoundException);
+      expect(mockLeagueService.getTeamsInLeague).toHaveBeenCalledWith('invalidLeagueId');
     });
   });
 });
