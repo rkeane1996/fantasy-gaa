@@ -1,33 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlayerController } from './player.controller';
 import { PlayerService } from '../service/player.service';
-import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
-import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
-import { PlayerDTO } from '../dto/request/add-player-request.dto';
-import { UpdatePlayerInfoDTO } from '../dto/request/update-player-request.dto';
-import { UpdatePlayerPriceDTO } from '../dto/request/update-player-price-request.dto';
-import { UpdatePlayerStatsDto } from '../dto/request/update-stats-request.dto';
 import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { NotFoundException } from '@nestjs/common';
+import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
+import { CreatePlayerDto } from '../dto/request/add-player-request.dto';
+import { UpdatePlayerStatusDto } from '../dto/request/update-player-status-request.dto';
 import { County } from '../../../lib/common/enum/counties';
-import { ClubDTO } from '../../../lib/common/dto/club.dto';
-import { Position } from '../../../lib/common/enum/position';
 import { GAAClub } from '../../../lib/common/enum/club';
+import { Position } from '../../../lib/common/enum/position';
+import { Status } from '../../../lib/player/constants/status.enum';
+import { UpdatePlayerPriceDto } from '../dto/request/update-player-price-request.dto copy';
 
 describe('PlayerController', () => {
-  let controller: PlayerController;
+  let playerController: PlayerController;
   let playerService: PlayerService;
 
   const mockPlayerService = {
-    addPlayer: jest.fn(),
-    updatePlayerInfo: jest.fn(),
+    createPlayer: jest.fn(),
     updatePlayerPrice: jest.fn(),
-    updatePlayerStatistics: jest.fn(),
-    findAllPlayers: jest.fn(),
+    updatePlayerStatus: jest.fn(),
+    getAllPlayers: jest.fn(),
     getPlayer: jest.fn(),
     getPlayersFromCounty: jest.fn(),
     getPlayersFromClub: jest.fn(),
+  };
+
+  const mockPlayerResponse: FindPlayerResponseDTO = {
+    playerName: 'John Doe',
+    profilePictureUrl: 'www.picurl.com',
+    county: County.Galway,
+    club: GAAClub.Carnmore,
+    position: Position.FORWARD,
+    price: 8.5,
+    status: Status.AVAILABLE,
+    id: '12345',
+    dateCreated: new Date(),
   };
 
   beforeEach(async () => {
@@ -41,270 +49,116 @@ describe('PlayerController', () => {
       ],
     })
       .overrideGuard(AdminAuthGuard)
-      .useValue(jest.fn(() => true))
+      .useValue({ canActivate: () => true }) // Mocking guard
       .overrideGuard(UserAuthGuard)
-      .useValue(jest.fn(() => true))
+      .useValue({ canActivate: () => true }) // Mocking guard
       .compile();
 
-    controller = module.get<PlayerController>(PlayerController);
+    playerController = module.get<PlayerController>(PlayerController);
     playerService = module.get<PlayerService>(PlayerService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Clear mocks after each test
   });
 
   describe('addPlayer', () => {
-    it('should create and return a new player', async () => {
-      const createPlayerDto: PlayerDTO = {
+    it('should create a player and return it', async () => {
+      const createPlayerDto: CreatePlayerDto = {
         playerName: 'John Doe',
+        profilePictureUrl: 'www.picurl.com',
         county: County.Galway,
-        club: { clubName: 'Carnmore' } as ClubDTO,
+        club: GAAClub.Carnmore,
         position: Position.FORWARD,
-        price: 9.5,
-        availability: 'Available',
+        price: 8.5,
+        status: Status.AVAILABLE,
       };
 
-      const expectedResponse = new CreatePlayerResponseDto({ id: '123-abc' });
-      mockPlayerService.addPlayer.mockResolvedValue(expectedResponse);
+      mockPlayerService.createPlayer.mockResolvedValue(mockPlayerResponse);
 
-      const result = await controller.addPlayer(createPlayerDto);
+      const result = await playerController.addPlayer(createPlayerDto);
 
-      expect(mockPlayerService.addPlayer).toHaveBeenCalledWith(createPlayerDto);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('updatePlayerInfo', () => {
-    it('should update and return the player information', async () => {
-      const updatePlayerInfoDto: UpdatePlayerInfoDTO = {
-        playerId: '123-abc',
-        playerName: 'John Doe',
-        county: County.Galway,
-        club: { clubName: 'Carnmore' } as ClubDTO,
-        position: Position.FORWARD,
-        availability: 'Available',
-      };
-
-      const expectedResponse = new FindPlayerResponseDTO({
-        playerId: '123-abc',
-        playerName: 'John Doe',
-        county: County.Galway,
-        position: Position.FORWARD,
-        club: { clubName: 'Carnmore' } as ClubDTO,
-        price: 9.5,
-        availability: 'Available',
-        playerStats: {
-          goals: 10,
-          points: 20,
-          yellowCards: 1,
-          redCards: 0,
-        },
-      });
-
-      mockPlayerService.updatePlayerInfo.mockResolvedValue(expectedResponse);
-
-      const result = await controller.updatePlayerInfo(updatePlayerInfoDto);
-
-      expect(mockPlayerService.updatePlayerInfo).toHaveBeenCalledWith(
-        updatePlayerInfoDto,
-      );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual(mockPlayerResponse);
+      expect(playerService.createPlayer).toHaveBeenCalledWith(createPlayerDto);
     });
   });
 
   describe('updatePlayerPrice', () => {
-    it('should update and return the player price', async () => {
-      const updatePlayerPriceDto: UpdatePlayerPriceDTO = {
-        playerId: '123-abc',
-        price: 10.0,
+    it('should update the player price', async () => {
+      const updatePlayerPriceDto: UpdatePlayerPriceDto = {
+        playerId: '12345',
+        price: 9.0,
       };
 
-      const expectedResponse = new FindPlayerResponseDTO({
-        playerId: '123-abc',
-        playerName: 'John Doe',
-        county: County.Galway,
-        position: Position.FORWARD,
-        club: { clubName: 'Carnmore' } as ClubDTO,
-        price: 10.0,
-        availability: 'Available',
-        playerStats: {
-          goals: 10,
-          points: 20,
-          yellowCards: 1,
-          redCards: 0,
-        },
-      });
+      mockPlayerService.updatePlayerPrice.mockResolvedValue(mockPlayerResponse);
 
-      mockPlayerService.updatePlayerPrice.mockResolvedValue(expectedResponse);
+      const result = await playerController.updatePlayerPrice(updatePlayerPriceDto);
 
-      const result = await controller.updatePlayerPrice(updatePlayerPriceDto);
-
-      expect(mockPlayerService.updatePlayerPrice).toHaveBeenCalledWith(
-        updatePlayerPriceDto.playerId,
-        updatePlayerPriceDto.price,
-      );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual(mockPlayerResponse);
+      expect(playerService.updatePlayerPrice).toHaveBeenCalledWith(updatePlayerPriceDto);
     });
   });
 
-  describe('updatePlayerStats', () => {
-    it('should update and return the player statistics', async () => {
-      const updatePlayerStatsDto: UpdatePlayerStatsDto = {
-        playerId: '123-abc',
-        goals: 3,
-        points: 34,
-        yellowCards: 2,
-        redCards: 1,
+  describe('updatePlayerStatus', () => {
+    it('should update the player status', async () => {
+      const updatePlayerStatusDto: UpdatePlayerStatusDto = {
+        playerId: '12345',
+        status: Status.INJURED,
       };
 
-      const expectedResponse = new FindPlayerResponseDTO({
-        playerId: '123-abc',
-        playerName: 'John Doe',
-        county: County.Galway,
-        position: Position.FORWARD,
-        club: { clubName: 'Carnmore' } as ClubDTO,
-        price: 9.5,
-        availability: 'Available',
-        playerStats: {
-          goals: 3,
-          points: 34,
-          yellowCards: 2,
-          redCards: 1,
-        },
-      });
+      mockPlayerService.updatePlayerStatus.mockResolvedValue(mockPlayerResponse);
 
-      mockPlayerService.updatePlayerStatistics.mockResolvedValue(
-        expectedResponse,
-      );
+      const result = await playerController.updatePlayerStats(updatePlayerStatusDto);
 
-      const result = await controller.updatePlayerStats(updatePlayerStatsDto);
-
-      expect(mockPlayerService.updatePlayerStatistics).toHaveBeenCalledWith(
-        updatePlayerStatsDto,
-      );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual(mockPlayerResponse);
+      expect(playerService.updatePlayerStatus).toHaveBeenCalledWith(updatePlayerStatusDto);
     });
   });
 
   describe('getAllPlayers', () => {
     it('should return an array of players', async () => {
-      const expectedResponse = [
-        new FindPlayerResponseDTO({
-          playerId: '123-abc',
-          playerName: 'John Doe',
-          county: County.Galway,
-          position: Position.FORWARD,
-          club: { clubName: 'Carnmore' } as ClubDTO,
-          price: 9.5,
-          availability: 'Available',
-          playerStats: {
-            goals: 10,
-            points: 20,
-            yellowCards: 1,
-            redCards: 0,
-          },
-        }),
-      ];
+      mockPlayerService.getAllPlayers.mockResolvedValue([mockPlayerResponse]);
 
-      mockPlayerService.findAllPlayers.mockResolvedValue(expectedResponse);
+      const result = await playerController.getAllPlayers();
 
-      const result = await controller.getAllPlayers();
-
-      expect(mockPlayerService.findAllPlayers).toHaveBeenCalled();
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual([mockPlayerResponse]);
+      expect(playerService.getAllPlayers).toHaveBeenCalled();
     });
   });
 
   describe('getPlayer', () => {
-    it('should return a single player', async () => {
-      const playerId = '123-abc';
-      const expectedResponse = new FindPlayerResponseDTO({
-        playerId: '123-abc',
-        playerName: 'John Doe',
-        county: County.Galway,
-        position: Position.FORWARD,
-        club: { clubName: 'Carnmore' } as ClubDTO,
-        price: 9.5,
-        availability: 'Available',
-        playerStats: {
-          goals: 10,
-          points: 20,
-          yellowCards: 1,
-          redCards: 0,
-        },
-      });
+    it('should return a player by ID', async () => {
+      const playerId = '12345';
+      mockPlayerService.getPlayer.mockResolvedValue(mockPlayerResponse);
 
-      mockPlayerService.getPlayer.mockResolvedValue(expectedResponse);
+      const result = await playerController.getPlayer(playerId);
 
-      const result = await controller.getPlayer(playerId);
-
-      expect(mockPlayerService.getPlayer).toHaveBeenCalledWith(playerId);
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual(mockPlayerResponse);
+      expect(playerService.getPlayer).toHaveBeenCalledWith(playerId);
     });
   });
 
   describe('getPlayersByCounty', () => {
-    it('should return an array of players from a specific county', async () => {
-      const county = County.Galway;
-      const expectedResponse = [
-        new FindPlayerResponseDTO({
-          playerId: '123-abc',
-          playerName: 'John Doe',
-          county: County.Galway,
-          position: Position.FORWARD,
-          club: { clubName: 'Carnmore' } as ClubDTO,
-          price: 9.5,
-          availability: 'Available',
-          playerStats: {
-            goals: 10,
-            points: 20,
-            yellowCards: 1,
-            redCards: 0,
-          },
-        }),
-      ];
+    it('should return players from a county', async () => {
+      const countyName = County.Galway;
+      mockPlayerService.getPlayersFromCounty.mockResolvedValue([mockPlayerResponse]);
 
-      mockPlayerService.getPlayersFromCounty.mockResolvedValue(
-        expectedResponse,
-      );
+      const result = await playerController.getPlayersByCounty(countyName);
 
-      const result = await controller.getPlayersByCounty(county);
-
-      expect(mockPlayerService.getPlayersFromCounty).toHaveBeenCalledWith(
-        county,
-      );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual([mockPlayerResponse]);
+      expect(playerService.getPlayersFromCounty).toHaveBeenCalledWith(countyName);
     });
   });
 
   describe('getPlayersByClub', () => {
-    it('should return an array of players from a specific club', async () => {
-      const club = GAAClub.Carnmore;
-      const expectedResponse = [
-        new FindPlayerResponseDTO({
-          playerId: '123-abc',
-          playerName: 'John Doe',
-          county: County.Galway,
-          position: Position.FORWARD,
-          club: { clubName: 'Carnmore' } as ClubDTO,
-          price: 9.5,
-          availability: 'Available',
-          playerStats: {
-            goals: 10,
-            points: 20,
-            yellowCards: 1,
-            redCards: 0,
-          },
-        }),
-      ];
+    it('should return players from a club', async () => {
+      const clubName = GAAClub.Carnmore;
+      mockPlayerService.getPlayersFromClub.mockResolvedValue([mockPlayerResponse]);
 
-      mockPlayerService.getPlayersFromClub.mockResolvedValue(expectedResponse);
+      const result = await playerController.getPlayersByClub(clubName);
 
-      const result = await controller.getPlayersByClub(club);
-
-      expect(mockPlayerService.getPlayersFromClub).toHaveBeenCalledWith(club);
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual([mockPlayerResponse]);
+      expect(playerService.getPlayersFromClub).toHaveBeenCalledWith(clubName);
     });
   });
 });

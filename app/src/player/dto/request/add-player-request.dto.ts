@@ -1,22 +1,24 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsObject,
-  IsString,
-} from 'class-validator';
-import { ClubDTO } from '../../../../lib/common/dto/club.dto';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { County } from '../../../../lib/common/enum/counties';
 import { Position } from '../../../../lib/common/enum/position';
 import { ApiProperty } from '@nestjs/swagger';
+import { GAAClub } from '../../../../lib/common/enum/club';
+import { Status } from '../../../../lib/player/constants/status.enum';
 
-export class PlayerDTO {
+export class CreatePlayerDto {
   @ApiProperty({
     example: 'John',
   })
   @IsString()
   @IsNotEmpty()
   playerName: string;
+
+  @ApiProperty({
+    example: 'www.picurl.com',
+  })
+  @IsString()
+  @IsNotEmpty()
+  profilePictureUrl: string;
 
   @ApiProperty({
     example: 'Galway',
@@ -28,9 +30,9 @@ export class PlayerDTO {
   @ApiProperty({
     example: 'Carnmore',
   })
-  @IsObject()
+  @IsEnum(GAAClub)
   @IsNotEmpty()
-  club: ClubDTO;
+  club: GAAClub;
 
   @ApiProperty({
     example: 'Forward',
@@ -47,9 +49,9 @@ export class PlayerDTO {
   price: number;
 
   @ApiProperty({
-    example: 'Available',
+    example: Status.AVAILABLE,
   })
-  @IsString()
+  @IsEnum(Status)
   @IsNotEmpty()
-  availability: string;
+  status: Status;
 }
