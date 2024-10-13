@@ -2,58 +2,42 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PlayerService } from '../service/player.service';
-import { PlayerDTO } from '../dto/request/add-player-request.dto';
 import { County } from '../../../lib/common/enum/counties';
 import { GAAClub } from '../../../lib/common/enum/club';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreatePlayerResponseDto } from '../dto/response/create-player-response.dto';
 import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
 import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
-import { UpdatePlayerInfoDTO } from '../dto/request/update-player-request.dto';
-import { UpdatePlayerPriceDTO } from '../dto/request/update-player-price-request.dto';
-import { UpdatePlayerStatsDto } from '../dto/request/update-stats-request.dto';
+import { UpdatePlayerStatusDto } from '../dto/request/update-player-status-request.dto';
+import { CreatePlayerDto } from '../dto/request/add-player-request.dto';
+import { UpdatePlayerPriceDto } from '../dto/request/update-player-price-request.dto copy';
 
 @Controller('players')
 @ApiTags('player')
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
-  @Post('/add')
+  @Post('create')
   @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Add a Player' })
   @ApiResponse({
     status: 201,
     description: 'Add player',
-    type: CreatePlayerResponseDto,
-  })
-  async addPlayer(
-    @Body() requestdto: PlayerDTO,
-  ): Promise<CreatePlayerResponseDto> {
-    return await this.playerService.addPlayer(requestdto);
-  }
-
-  @Put('/update/playerInfo')
-  @UseGuards(AdminAuthGuard)
-  @ApiOperation({ summary: 'Update Players information' })
-  @ApiResponse({
-    status: 201,
-    description: 'Update player information',
     type: FindPlayerResponseDTO,
   })
-  async updatePlayerInfo(
-    @Body() requestdto: UpdatePlayerInfoDTO,
+  async addPlayer(
+    @Body() createPlayerDto: CreatePlayerDto,
   ): Promise<FindPlayerResponseDTO> {
-    return await this.playerService.updatePlayerInfo(requestdto);
+    return await this.playerService.createPlayer(createPlayerDto);
   }
 
-  @Put('/update/price')
+  @Put('price')
   @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Update Players price' })
   @ApiResponse({
@@ -62,26 +46,23 @@ export class PlayerController {
     type: FindPlayerResponseDTO,
   })
   async updatePlayerPrice(
-    @Body() requestdto: UpdatePlayerPriceDTO,
+    @Body() updatePlayerPriceDTO: UpdatePlayerPriceDto,
   ): Promise<FindPlayerResponseDTO> {
-    return await this.playerService.updatePlayerPrice(
-      requestdto.playerId,
-      requestdto.price,
-    );
+    return await this.playerService.updatePlayerPrice(updatePlayerPriceDTO);
   }
 
-  @Put('/update/statistics')
+  @Put('status')
   @UseGuards(AdminAuthGuard)
-  @ApiOperation({ summary: 'Update Players statistics' })
+  @ApiOperation({ summary: 'Update Players status' })
   @ApiResponse({
     status: 201,
-    description: 'Update player statistics',
+    description: 'Update player status',
     type: FindPlayerResponseDTO,
   })
   async updatePlayerStats(
-    @Body() requestdto: UpdatePlayerStatsDto,
+    @Body() updatePlayerStatusDto: UpdatePlayerStatusDto,
   ): Promise<FindPlayerResponseDTO> {
-    return await this.playerService.updatePlayerStatistics(requestdto);
+    return await this.playerService.updatePlayerStatus(updatePlayerStatusDto);
   }
 
   @Get()
@@ -93,10 +74,10 @@ export class PlayerController {
     type: [FindPlayerResponseDTO],
   })
   async getAllPlayers(): Promise<FindPlayerResponseDTO[]> {
-    return await this.playerService.findAllPlayers();
+    return await this.playerService.getAllPlayers();
   }
 
-  @Get(':id')
+  @Get('player')
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get player' })
   @ApiResponse({
@@ -109,12 +90,12 @@ export class PlayerController {
     description: 'Player not found',
   })
   async getPlayer(
-    @Param('id') playerId: string,
+    @Query('playerId') playerId: string,
   ): Promise<FindPlayerResponseDTO> {
     return await this.playerService.getPlayer(playerId);
   }
 
-  @Get('county/:county')
+  @Get('county')
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get players from county' })
   @ApiResponse({
@@ -123,12 +104,12 @@ export class PlayerController {
     type: [FindPlayerResponseDTO],
   })
   async getPlayersByCounty(
-    @Param('county') county: County,
+    @Query('countyName') county: County,
   ): Promise<FindPlayerResponseDTO[]> {
     return await this.playerService.getPlayersFromCounty(county);
   }
 
-  @Get('club/:club')
+  @Get('club')
   @UseGuards(UserAuthGuard)
   @ApiOperation({ summary: 'Get players from club' })
   @ApiResponse({
@@ -137,7 +118,7 @@ export class PlayerController {
     type: [FindPlayerResponseDTO],
   })
   async getPlayersByClub(
-    @Param('club') club: GAAClub,
+    @Query('clubName') club: GAAClub,
   ): Promise<FindPlayerResponseDTO[]> {
     return await this.playerService.getPlayersFromClub(club);
   }

@@ -1,68 +1,63 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ClubDTO } from '../../../../lib/common/dto/club.dto';
 import { County } from '../../../../lib/common/enum/counties';
 import { Position } from '../../../../lib/common/enum/position';
-import { PlayerStats } from '../../schema/player.schema';
+import { IsString, IsNotEmpty, IsEnum, IsNumber } from 'class-validator';
+import { GAAClub } from '../../../../lib/common/enum/club';
+import { Status } from '../../../../lib/player/constants/status.enum';
 
 export class FindPlayerResponseDTO {
   @ApiProperty({
-    example: '100-23-23frwe-43v',
+    example: 'John',
   })
-  playerId: string;
+  @IsString()
+  @IsNotEmpty()
+  playerName: string;
 
   @ApiProperty({
-    example: 'Ronan Keane',
+    example: 'www.picurl.com',
   })
-  playerName: string;
+  @IsString()
+  @IsNotEmpty()
+  profilePictureUrl: string;
+
   @ApiProperty({
     example: 'Galway',
   })
+  @IsEnum(County)
+  @IsNotEmpty()
   county: County;
-
-  @ApiProperty({
-    example: 'Defender',
-  })
-  position: Position;
 
   @ApiProperty({
     example: 'Carnmore',
   })
-  club: ClubDTO;
+  @IsEnum(GAAClub)
+  @IsNotEmpty()
+  club: GAAClub;
+
+  @ApiProperty({
+    example: 'Forward',
+  })
+  @IsEnum(Position)
+  @IsNotEmpty()
+  position: Position;
 
   @ApiProperty({
     example: 8.5,
   })
+  @IsNumber()
+  @IsNotEmpty()
   price: number;
 
   @ApiProperty({
-    example: 'Available',
+    example: Status.AVAILABLE,
   })
-  availability: string;
+  @IsEnum(Status)
+  @IsNotEmpty()
+  status: Status;
 
-  @ApiProperty({
-    example: {
-      goals: 0,
-      points: 0,
-      yellowCards: 0,
-      redCards: 0,
-    },
-  })
-  playerStats: PlayerStats;
+  @IsNotEmpty()
+  id: string;
 
-  @ApiProperty({
-    example: 8,
-  })
-  totalPoints: number;
-
-  @ApiProperty({
-    example: [
-      { gameweek: 1, points: 4 },
-      { gameweek: 2, points: 4 },
-    ],
-  })
-  gameweekPoints: [{ gameweek: number; points: number }];
-
-  constructor(init?: Partial<FindPlayerResponseDTO>) {
-    Object.assign(this, init);
-  }
+  @IsNotEmpty()
+  dateCreated: Date;
 }
