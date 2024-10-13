@@ -1,15 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsString } from 'class-validator';
-import { County } from '../../../../lib/common/enum/counties';
+import { IsEnum, IsNumber } from 'class-validator';
+import { County } from '../../../lib/common/enum/counties';
+import { PlayerPerformanceDto } from './player-performance.dto';
 
 export class GetMatchResponseDto {
-  @ApiProperty({
-    example: 'matchid-1',
-    description: 'The object id of the match',
-  })
-  @IsString()
-  matchId: string;
-
   @ApiProperty({
     example: County.Antrim,
     description: 'The team that is playing at home',
@@ -28,29 +22,18 @@ export class GetMatchResponseDto {
     example: [
       {
         playerId: 'playerId-1',
-        points: [
-          {
-            pointType: 'SCORED_POINT',
-            pointValue: 1,
-          },
-        ], // Points earned by the player in this match
+        goals: 0,
+        points: 0,
+        yellowCards: 0,
+        redCards: 0,
+        minutes: 0,
+        saves: 0,
+        totalPoints: 0,
       },
     ],
     description: 'The players that are playing for both the home and away team',
   })
-  players: [
-    {
-      playerId: string;
-      //points: Points[]; // Points earned by the player in this match
-    },
-  ];
-
-  @ApiProperty({
-    example: 2,
-    description: 'The gameweek number that the match is being played in',
-  })
-  @IsNumber()
-  gameweek: number;
+  playerPerformance: PlayerPerformanceDto[];
 
   @ApiProperty({
     example: '1-20',
@@ -65,4 +48,8 @@ export class GetMatchResponseDto {
   })
   @IsNumber()
   awayScore: string;
+
+  id: string;
+
+  dateCreated: Date;
 }

@@ -1,0 +1,12 @@
+export enum Points {
+  GOAL,
+  PENALTY_SAVE = 3,
+  POINT,
+  SAVES,
+  BLOCK,
+  HOOK,
+  LESS_THAN_50_MINS_PLAYED = 1,
+  YELLOW_CARD = -1,
+  RED_CARD = -2,
+  FULL_GAME_PLAYED = 2,
+}
