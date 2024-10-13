@@ -4,12 +4,8 @@ import { GameweekService } from '../service/gameweek.service';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { StartStopGameweekDto } from '../dto/request/start-end-gameweek.dto';
 import { GetGameweekQueryDto } from '../dto/request/get-gameweek-query.dto';
-import { UpdateMatchScoreDto } from '../dto/request/update-match-score.dto';
-import { CreateMatchDto } from '../dto/request/create-match.dto';
 import { GameweekActiveResposneDto } from '../dto/response/gameweek-active-response.dto';
 import { GetGameweekResponseDto } from '../dto/response/get-gameweek-repsonse.dto';
-import { GetMatchResponseDto } from '../dto/response/get-match-response.dto';
-import { County } from '../../../lib/common/enum/counties';
 import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 
 describe('GameweekController', () => {
@@ -134,91 +130,4 @@ describe('GameweekController', () => {
     });
   });
 
-  describe('addMatchToGameweek', () => {
-    it('should add matches to a gameweek', async () => {
-      const createMatchDto: CreateMatchDto[] = [
-        {
-          homeTeam: County.Antrim,
-          awayTeam: County.Dublin,
-          players: [
-            {
-              playerId: 'player1',
-            },
-          ],
-          gameweek: 1,
-        },
-      ];
-      const matchResponse: GetMatchResponseDto[] = [
-        {
-          matchId: 'match1',
-          homeTeam: County.Antrim,
-          awayTeam: County.Dublin,
-          players: [
-            {
-              playerId: 'player1',
-            },
-          ],
-          gameweek: 1,
-          homeScore: '0-00',
-          awayScore: '0-00',
-        },
-      ];
-
-      mockGameweekService.addMatchToGameweek.mockResolvedValue(matchResponse);
-
-      const result = await controller.addMatchToGameweek(createMatchDto);
-
-      expect(result).toEqual(matchResponse);
-      expect(gameweekService.addMatchToGameweek).toHaveBeenCalledWith(
-        createMatchDto,
-      );
-    });
-  });
-
-  describe('getGameweekMatches', () => {
-    it('should return matches for a gameweek', async () => {
-      const matches = ['match1', 'match2'];
-
-      mockGameweekService.getGameweekMatches.mockResolvedValue(matches);
-
-      const result = await controller.getGameweekMatches(1);
-
-      expect(result).toEqual(matches);
-      expect(gameweekService.getGameweekMatches).toHaveBeenCalledWith(1);
-    });
-  });
-
-  describe('updateMatchScore', () => {
-    it('should update match score', async () => {
-      const updateScoreDto: UpdateMatchScoreDto = {
-        matchId: 'match1',
-        homeTeamScore: '0-1',
-        awayTeamScore: '2-1',
-      };
-      const matchResponse: GetMatchResponseDto = {
-        matchId: 'match1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Dublin,
-        players: [
-          {
-            playerId: 'player1',
-          },
-        ],
-        gameweek: 1,
-        homeScore: '0-00',
-        awayScore: '0-00',
-      };
-
-      mockGameweekService.updateMatchScore.mockResolvedValue(matchResponse);
-
-      const result = await controller.updateMatchScore(updateScoreDto);
-
-      expect(result).toEqual(matchResponse);
-      expect(gameweekService.updateMatchScore).toHaveBeenCalledWith(
-        'match1',
-        '0-1',
-        '2-1',
-      );
-    });
-  });
 });

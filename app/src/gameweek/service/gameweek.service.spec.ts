@@ -2,17 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { GameweekService } from './gameweek.service';
 import { GameweekRepository } from '../repository/gameweek.repository';
-import { MatchRepository } from '../repository/match.repository';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
-import { CreateMatchDto } from '../dto/request/create-match.dto';
+
 import { Gameweek } from '../schema/gameweek.schema';
-import { Match } from '../schema/match.schema';
-import { County } from '../../../lib/common/enum/counties';
+
 
 describe('GameweekService', () => {
   let service: GameweekService;
   let gameweekRepo: GameweekRepository;
-  let matchRepo: MatchRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,21 +25,11 @@ describe('GameweekService', () => {
             addMatchToGameweek: jest.fn(),
           },
         },
-        {
-          provide: MatchRepository,
-          useValue: {
-            addMatch: jest.fn(),
-            getGameweekMatches: jest.fn(),
-            updateMatchScore: jest.fn(),
-            updatePlayerPoints: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<GameweekService>(GameweekService);
     gameweekRepo = module.get<GameweekRepository>(GameweekRepository);
-    matchRepo = module.get<MatchRepository>(MatchRepository);
   });
 
   // Test for creating a new gameweek
@@ -134,78 +121,6 @@ describe('GameweekService', () => {
       expect(gameweekRepo.startEndGameweek).toHaveBeenCalledWith(1, true);
       expect(result.Gameweek).toEqual(1);
       expect(result.IsActive).toBe(true);
-    });
-  });
-
-  // Test for adding matches to a gameweek
-  describe('addMatchToGameweek', () => {
-    const matches: CreateMatchDto[] = [
-      {
-        homeTeam: County.Antrim,
-        awayTeam: County.Dublin,
-        players: [{ playerId: 'player1' }],
-        gameweek: 1,
-      },
-    ];
-
-    it('should add matches to a gameweek', async () => {
-      const match = {
-        id: 'match1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Dublin,
-        players: [],
-        gameweek: 1,
-      } as unknown as Match;
-
-      jest.spyOn(matchRepo, 'addMatch').mockResolvedValue(match);
-      jest.spyOn(gameweekRepo, 'addMatchToGameweek').mockResolvedValue(null);
-
-      const result = await service.addMatchToGameweek(matches);
-      expect(matchRepo.addMatch).toHaveBeenCalledWith(matches[0]);
-      expect(gameweekRepo.addMatchToGameweek).toHaveBeenCalledWith('match1', 1);
-      expect(result[0].homeTeam).toEqual(County.Antrim);
-    });
-  });
-
-  // Test for fetching gameweek matches
-  describe('getGameweekMatches', () => {
-    it('should return all matches for a given gameweek', async () => {
-      const matches = [
-        { id: 'match1', homeTeam: County.Antrim, awayTeam: County.Dublin },
-        { id: 'match2', homeTeam: County.Clare, awayTeam: County.Galway },
-      ] as unknown as Match[];
-
-      jest.spyOn(matchRepo, 'getGameweekMatches').mockResolvedValue(matches);
-
-      const result = await service.getGameweekMatches(1);
-      expect(matchRepo.getGameweekMatches).toHaveBeenCalledWith(1);
-      expect(result.length).toBe(2);
-    });
-  });
-
-  // Test for updating match score
-  describe('updateMatchScore', () => {
-    it('should update the score of a match', async () => {
-      const match = {
-        id: 'match1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Dublin,
-        homeScore: '1-10',
-        awayScore: '0-12',
-        players: [],
-        gameweek: 1,
-      } as unknown as Match;
-
-      jest.spyOn(matchRepo, 'updateMatchScore').mockResolvedValue(match);
-
-      const result = await service.updateMatchScore('match1', '1-10', '0-12');
-      expect(matchRepo.updateMatchScore).toHaveBeenCalledWith(
-        'match1',
-        '1-10',
-        '0-12',
-      );
-      expect(result.homeScore).toEqual('1-10');
-      expect(result.awayScore).toEqual('0-12');
     });
   });
 });

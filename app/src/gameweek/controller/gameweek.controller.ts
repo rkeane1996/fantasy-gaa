@@ -12,11 +12,8 @@ import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 import { GameweekService } from '../service/gameweek.service';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { StartStopGameweekDto } from '../dto/request/start-end-gameweek.dto';
-import { UpdateMatchScoreDto } from '../dto/request/update-match-score.dto';
-import { CreateMatchDto } from '../dto/request/create-match.dto';
 import { GetGameweekResponseDto } from '../dto/response/get-gameweek-repsonse.dto';
 import { GameweekActiveResposneDto } from '../dto/response/gameweek-active-response.dto';
-import { GetMatchResponseDto } from '../dto/response/get-match-response.dto';
 
 @Controller('gameweek')
 @ApiTags('gameweek')
@@ -73,45 +70,5 @@ export class GameweekController {
     @Param('gameweekNumber') gameweekNumber: number,
   ): Promise<GetGameweekResponseDto> {
     return await this.gameweekService.getGameWeek(gameweekNumber);
-  }
-
-  @Post('match/add')
-  @ApiOperation({ summary: 'Add matches' })
-  @ApiResponse({
-    status: 201,
-    description: 'Add matches',
-    type: Array<CreateMatchDto>,
-  })
-  async addMatchToGameweek(
-    @Body() request: CreateMatchDto[],
-  ): Promise<GetMatchResponseDto[]> {
-    return await this.gameweekService.addMatchToGameweek(request);
-  }
-
-  @Get('/match/:gameweekNumber')
-  @ApiOperation({ summary: 'Get matches for a gameweek' })
-  @ApiResponse({
-    status: 200,
-    description: 'Get matches for a gameweek',
-  })
-  async getGameweekMatches(@Param('gameweekNumber') gameweekNumber: number) {
-    return await this.gameweekService.getGameweekMatches(gameweekNumber);
-  }
-
-  @Put('match/updateScore')
-  @ApiOperation({ summary: 'Update the score for a match' })
-  @ApiResponse({
-    status: 201,
-    description: 'Update the score for a match',
-    type: UpdateMatchScoreDto,
-  })
-  async updateMatchScore(
-    @Body() request: UpdateMatchScoreDto,
-  ): Promise<GetMatchResponseDto> {
-    return await this.gameweekService.updateMatchScore(
-      request.matchId,
-      request.homeTeamScore,
-      request.awayTeamScore,
-    );
   }
 }

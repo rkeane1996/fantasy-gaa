@@ -4,22 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { GameweekRepository } from '../repository/gameweek.repository';
-import { MatchRepository } from '../repository/match.repository';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { Gameweek } from '../schema/gameweek.schema';
 import { GetGameweekResponseDto } from '../dto/response/get-gameweek-repsonse.dto';
-import { CreateMatchDto } from '../dto/request/create-match.dto';
-import { Match } from '../schema/match.schema';
 import { plainToInstance } from 'class-transformer';
-import { GetMatchResponseDto } from '../dto/response/get-match-response.dto';
 import { GameweekActiveResposneDto } from '../dto/response/gameweek-active-response.dto';
 
 @Injectable()
 export class GameweekService {
-  constructor(
-    private readonly gameweekRepo: GameweekRepository,
-    private readonly matchRepo: MatchRepository,
-  ) {}
+  constructor(private readonly gameweekRepo: GameweekRepository) {}
 
   async createGameWeek(
     createGameweekDto: CreateGameweekDto,
@@ -63,7 +56,7 @@ export class GameweekService {
     });
   }
 
-  async addMatchToGameweek(
+  /* async addMatchToGameweek(
     matches: CreateMatchDto[],
   ): Promise<GetMatchResponseDto[]> {
     const matchesCreated = await Promise.all(
@@ -80,47 +73,7 @@ export class GameweekService {
         ),
     );
     return matchesCreated.map((match) => this.convertToGetMatchResponse(match));
-  }
-
-  async getGameweekMatches(
-    gameweekNumber: number,
-  ): Promise<GetMatchResponseDto[]> {
-    const matches = await this.matchRepo.getGameweekMatches(gameweekNumber);
-    return matches.map((match) => this.convertToGetMatchResponse(match));
-  }
-
-  async updateMatchScore(
-    matchId: string,
-    homeScore: string,
-    awayScore: string,
-  ): Promise<GetMatchResponseDto> {
-    const matchUpdated = await this.matchRepo.updateMatchScore(
-      matchId,
-      homeScore,
-      awayScore,
-    );
-    return this.convertToGetMatchResponse(matchUpdated);
-  }
-
-  // async updatePlayerPointsScoredInMatch(
-  //  playerId: string,
-  // matchId: string,
-  //points: Points[],
-  //) {
-  //return await this.matchRepo.updatePlayerPoints(playerId, matchId, points);
-  // }
-
-  private convertToGetMatchResponse(match: Match): GetMatchResponseDto {
-    return plainToInstance(GetMatchResponseDto, {
-      id: match._id,
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
-      players: match.players,
-      gameweek: match.gameweek,
-    });
-  }
+  } */
 
   private convertToGetGameweekResponse(
     gameweek: Gameweek,
