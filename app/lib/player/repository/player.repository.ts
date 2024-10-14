@@ -64,4 +64,16 @@ export class PlayerRepository {
       )
     ).toJSON();
   }
+
+  async addTotalPoints(playerId: string, points: number) {
+    return (
+      await this.playerModel.findByIdAndUpdate(
+        playerId,
+        {
+          $inc: { totalPoints: points },
+        },
+        { new: true },
+      )
+    ).toJSON();
+  }
 }

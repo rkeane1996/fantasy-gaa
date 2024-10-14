@@ -7,10 +7,16 @@ import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
 import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto';
 import { Points } from '../../../lib/points/enum/points.enum';
+import { PlayerRepository } from '../../../lib/player/repository/player.repository';
+import { TeamRepository } from '../../../lib/team/repository/team.repository';
 
 @Injectable()
 export class MatchService {
-  constructor(private readonly matchRepository: MatchRepository) {}
+  constructor(
+    private readonly matchRepository: MatchRepository,
+    private readonly playerRepository: PlayerRepository,
+    private readonly teamRepository: TeamRepository,
+  ) {}
 
   async createMatch(createMatchDto: CreateMatchDto) {
     const match = await this.matchRepository.createMatch(createMatchDto);
@@ -60,21 +66,42 @@ export class MatchService {
       );
     }
 
+    const currentTotalPoints = player.totalPoints;
+
     this.updatePlayerPerf(player, updatePlayerPerformanceDto.playerPerformance);
 
     player.totalPoints = this.calculateTotalPoints(player);
 
-    const updatedMatch = await this.matchRepository.updatePlayerPerformance(
-      updatePlayerPerformanceDto.matchId,
-      player,
-    );
+    const totalPointsDifference = player.totalPoints - currentTotalPoints;
 
-    return plainToInstance(
-      PlayerPerformanceDto,
-      updatedMatch.playerPerformance.find(
-        (p) => p.playerId === player.playerId,
-      ),
-    );
+    try {
+      const [updatedMatch] = await Promise.all([
+        // Update player performance in the match
+        this.matchRepository.updatePlayerPerformance(
+          updatePlayerPerformanceDto.matchId,
+          player,
+        ),
+
+        // Update player's total points in the player repository
+        this.playerRepository.addTotalPoints(
+          player.playerId as string,
+          totalPointsDifference,
+        ),
+      ]);
+
+      //From gameweek repo get array of team ids that have thee player id not as a sub
+      // then call team repo to update the teams in the array with the points
+
+      return plainToInstance(
+        PlayerPerformanceDto,
+        updatedMatch.playerPerformance.find(
+          (p) => p.playerId === player.playerId,
+        ),
+      );
+    } catch (error) {
+      // Handle specific errors here if needed
+      throw new Error('Error updating player performance: ' + error.message);
+    }
   }
 
   private updatePlayerPerf(
