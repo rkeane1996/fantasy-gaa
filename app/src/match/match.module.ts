@@ -5,6 +5,8 @@ import { MatchRepository } from '../../lib/match/repository/match.repository';
 import { Match, MatchSchema } from '../../lib/match/schema/match.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from 'src/user/user.module';
+import { PlayerRepository } from '../../lib/player/repository/player.repository';
+import { TeamRepository } from '../../lib/team/repository/team.repository';
 
 @Module({
   imports: [
@@ -15,6 +17,6 @@ import { UserModule } from 'src/user/user.module';
     UserModule,
   ],
   controllers: [MatchController],
-  providers: [MatchService, MatchRepository],
+  providers: [MatchService, MatchRepository, PlayerRepository, TeamRepository],
 })
 export class MatchModule {}

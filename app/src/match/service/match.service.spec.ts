@@ -10,6 +10,8 @@ import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto
 import { Points } from '../../../lib/points/enum/points.enum';
 import { plainToInstance } from 'class-transformer';
 import { County } from '../../../lib/common/enum/counties';
+import { PlayerRepository } from '../../../lib/player/repository/player.repository';
+import { TeamRepository } from '../../../lib/team/repository/team.repository';
 
 describe('MatchService', () => {
   let matchService: MatchService;
@@ -27,6 +29,18 @@ describe('MatchService', () => {
             findMatch: jest.fn(),
             findMatchPlayers: jest.fn(),
             updatePlayerPerformance: jest.fn(),
+          },
+        },
+        {
+          provide: PlayerRepository,
+          useValue: {
+            addTotalPoints: jest.fn(),
+          },
+        },
+        {
+          provide: TeamRepository,
+          useValue: {
+            addTotalPoints: jest.fn(),
           },
         },
       ],
