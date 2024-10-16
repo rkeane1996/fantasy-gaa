@@ -6,6 +6,9 @@ import {
   IsDate,
   IsBoolean,
 } from 'class-validator';
+import { GameweekTeam } from '../../../../lib/gameweek/schema/gameweek.team.schema';
+import { Match } from '../../../../lib/match/schema/match.schema';
+import { County } from '../../../../lib/common/enum/counties';
 
 export class GetGameweekResponseDto {
   @ApiProperty({
@@ -22,7 +25,27 @@ export class GetGameweekResponseDto {
     description: 'The matches that are link to the gameweek',
   })
   @IsArray()
-  matches: string[];
+  matches: string[] | Match[];
+
+  @ApiProperty({
+    example: [
+      {
+        teamid: 'team-id-123',
+        players: {
+          playerId: 'r43-gf34-gre',
+          position: 'Forward',
+          county: County.Galway,
+          price: 5,
+          isCaptain: true,
+          isViceCaptain: true,
+          isSub: false,
+        },
+      },
+    ],
+    description: 'The team that are submitted to the gameweek',
+  })
+  @IsArray()
+  gameweekTeams: GameweekTeam[];
 
   @ApiProperty({
     example: new Date(),
@@ -39,4 +62,8 @@ export class GetGameweekResponseDto {
   })
   @IsBoolean()
   isActive: boolean;
+
+  id: string;
+
+  dateCreated: Date;
 }

@@ -8,14 +8,13 @@ import { PlayerPerformanceDto } from '../dto/player-performance.dto';
 import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto';
 import { Points } from '../../../lib/points/enum/points.enum';
 import { PlayerRepository } from '../../../lib/player/repository/player.repository';
-import { TeamRepository } from '../../../lib/team/repository/team.repository';
 
 @Injectable()
 export class MatchService {
   constructor(
     private readonly matchRepository: MatchRepository,
     private readonly playerRepository: PlayerRepository,
-    private readonly teamRepository: TeamRepository,
+    //private readonly teamRepository: TeamRepository,
   ) {}
 
   async createMatch(createMatchDto: CreateMatchDto) {

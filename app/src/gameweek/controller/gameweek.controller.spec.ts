@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GameweekController } from './gameweek.controller';
 import { GameweekService } from '../service/gameweek.service';
-import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
-import { StartStopGameweekDto } from '../dto/request/start-end-gameweek.dto';
-import { GetGameweekQueryDto } from '../dto/request/get-gameweek-query.dto';
-import { GameweekActiveResposneDto } from '../dto/response/gameweek-active-response.dto';
 import { GetGameweekResponseDto } from '../dto/response/get-gameweek-repsonse.dto';
+import { GameweekTeam } from '../../../lib/gameweek/schema/gameweek.team.schema';
+import { Match } from '../../../lib/match/schema/match.schema';
 import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
+import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
+import { AddMatchesToGameweekDto } from '../dto/request/add-matches-to-gameweek.dto';
+import { AddTeamsToGameweekDto } from '../dto/request/add-teams-to-gameweek.dto';
+import { ActivateDeactivateGameweekDto } from '../dto/request/start-end-gameweek.dto';
 
 describe('GameweekController', () => {
   let controller: GameweekController;
@@ -14,12 +16,13 @@ describe('GameweekController', () => {
 
   const mockGameweekService = {
     createGameWeek: jest.fn(),
-    getGameWeeks: jest.fn(),
-    startEndGameweek: jest.fn(),
+    addMatchesToGameweek: jest.fn(),
+    lockTeamsForGameweek: jest.fn(),
     getGameWeek: jest.fn(),
-    addMatchToGameweek: jest.fn(),
-    getGameweekMatches: jest.fn(),
-    updateMatchScore: jest.fn(),
+    getGameWeekMatches: jest.fn(),
+    getGameWeekTeams: jest.fn(),
+    getGameWeekTeam: jest.fn(),
+    activateDeactivateGameweek: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -31,103 +34,193 @@ describe('GameweekController', () => {
           useValue: mockGameweekService,
         },
       ],
-    })
-      .overrideGuard(AdminAuthGuard)
-      .useValue(jest.fn(() => true))
-      .compile();
+    }).overrideGuard(AdminAuthGuard)
+    .useValue({ canActivate: () => true }).compile();
 
     controller = module.get<GameweekController>(GameweekController);
     gameweekService = module.get<GameweekService>(GameweekService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('createGameWeek', () => {
-    it('should create a gameweek successfully', async () => {
+    it('should create a new gameweek and return it', async () => {
       const createGameweekDto: CreateGameweekDto = {
         gameweekNumber: 1,
-        matches: ['match1'],
+        matches: ['matchid-1', 'matchid-2'],
         transferDeadline: new Date(),
-      };
-      const gameweekResponse: GetGameweekResponseDto = {
-        gameweekNumber: 1,
-        matches: ['match1'],
-        transferDeadline: new Date(),
-        isActive: true,
       };
 
-      mockGameweekService.createGameWeek.mockResolvedValue(gameweekResponse);
+      const expectedResult: GetGameweekResponseDto = {
+        gameweekNumber: 1,
+        matches: ['matchid-1', 'matchid-2'],
+        gameweekTeams: [],
+        transferDeadline: new Date(),
+        isActive: false,
+        id:'123',
+        dateCreated: new Date()
+      };
+
+      mockGameweekService.createGameWeek.mockResolvedValue(expectedResult);
 
       const result = await controller.createGameWeek(createGameweekDto);
 
-      expect(result).toEqual(gameweekResponse);
-      expect(gameweekService.createGameWeek).toHaveBeenCalledWith(
-        createGameweekDto,
-      );
+      expect(gameweekService.createGameWeek).toHaveBeenCalledWith(createGameweekDto);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should throw an error if createGameWeek fails', async () => {
+      const createGameweekDto: CreateGameweekDto = {
+        gameweekNumber: 1,
+        matches: ['matchid-1', 'matchid-2'],
+        transferDeadline: new Date(),
+      };
+
+      mockGameweekService.createGameWeek.mockRejectedValue(new Error('Creation failed'));
+
+      await expect(controller.createGameWeek(createGameweekDto)).rejects.toThrow('Creation failed');
     });
   });
 
-  describe('getGameWeeks', () => {
-    it('should return an array of gameweeks', async () => {
-      const gameweeksResponse: GetGameweekResponseDto[] = [
-        {
-          gameweekNumber: 1,
-          matches: ['match1'],
-          transferDeadline: new Date(),
-          isActive: true,
-        },
-      ];
+  describe('addMatchesToGameweek', () => {
+    it('should add matches to a gameweek and return the updated gameweek', async () => {
+      const addMatchesDto: AddMatchesToGameweekDto = {
+        gameweekNumber: 1,
+        matches: ['matchid-1', 'matchid-2'],
+      };
 
-      mockGameweekService.getGameWeeks.mockResolvedValue(gameweeksResponse);
+      const expectedResult: GetGameweekResponseDto = {
+        gameweekNumber: 1,
+        matches: ['matchid-1', 'matchid-2'],
+        gameweekTeams: [],
+        transferDeadline: new Date(),
+        isActive: false,
+        id: '',
+        dateCreated: undefined
+      };
 
-      const result = await controller.getGameWeeks();
+      mockGameweekService.addMatchesToGameweek.mockResolvedValue(expectedResult);
 
-      expect(result).toEqual(gameweeksResponse);
-      expect(gameweekService.getGameWeeks).toHaveBeenCalled();
+      const result = await controller.addMatchesToGameweek(addMatchesDto);
+
+      expect(gameweekService.addMatchesToGameweek).toHaveBeenCalledWith(addMatchesDto);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('addTeamsToGameweek', () => {
+    it('should add teams to a gameweek', async () => {
+      const addTeamsDto: AddTeamsToGameweekDto = {
+        gameweekNumber: 1,
+        teams: [],
+      };
+
+      const expectedResult: GetGameweekResponseDto = {
+        gameweekNumber: 1,
+        matches: [],
+        gameweekTeams: [],
+        transferDeadline: new Date(),
+        isActive: false,
+        id: '',
+        dateCreated: undefined
+      };
+
+      mockGameweekService.lockTeamsForGameweek.mockResolvedValue(expectedResult);
+
+      const result = await controller.addTeamsToGameweek(addTeamsDto);
+
+      expect(gameweekService.lockTeamsForGameweek).toHaveBeenCalledWith(addTeamsDto);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getGameWeek', () => {
+    it('should get a gameweek by its number', async () => {
+      const gameweekNumber = 1;
+      const expectedResult: GetGameweekResponseDto = {
+        gameweekNumber: 1,
+        matches: [],
+        gameweekTeams: [],
+        transferDeadline: new Date(),
+        isActive: false,
+        id: '',
+        dateCreated: undefined
+      };
+
+      mockGameweekService.getGameWeek.mockResolvedValue(expectedResult);
+
+      const result = await controller.getGameWeek(gameweekNumber);
+
+      expect(gameweekService.getGameWeek).toHaveBeenCalledWith(gameweekNumber);
+      expect(result).toEqual(expectedResult);
     });
   });
 
   describe('startEndGameweek', () => {
     it('should activate or deactivate a gameweek', async () => {
-      const startStopDto: StartStopGameweekDto = {
+      const activateDeactivateDto: ActivateDeactivateGameweekDto = {
         gameweekNumber: 1,
         isActive: true,
       };
-      const gameweekActiveResponse: GameweekActiveResposneDto = {
-        Gameweek: 1,
-        IsActive: true,
-      };
 
-      mockGameweekService.startEndGameweek.mockResolvedValue(
-        gameweekActiveResponse,
-      );
-
-      const result = await controller.startEndGameweek(startStopDto);
-
-      expect(result).toEqual(gameweekActiveResponse);
-      expect(gameweekService.startEndGameweek).toHaveBeenCalledWith(1, true);
-    });
-  });
-
-  describe('getGameWeek', () => {
-    it('should return a single gameweek', async () => {
-      const queryDto: GetGameweekQueryDto = { gameweekNumber: 1 };
-      const gameweekResponse: GetGameweekResponseDto = {
+      const updatedGameweek = {
         gameweekNumber: 1,
-        matches: ['match1'],
-        transferDeadline: new Date(),
         isActive: true,
       };
 
-      mockGameweekService.getGameWeek.mockResolvedValue(gameweekResponse);
+      mockGameweekService.activateDeactivateGameweek.mockResolvedValue(updatedGameweek);
 
-      const result = await controller.getGameWeek(queryDto.gameweekNumber);
+      const result = await controller.startEndGameweek(activateDeactivateDto);
 
-      expect(result).toEqual(gameweekResponse);
-      expect(gameweekService.getGameWeek).toHaveBeenCalledWith(1);
+      expect(gameweekService.activateDeactivateGameweek).toHaveBeenCalledWith(1, true);
+      expect(result).toEqual({
+        message: 'Gameweek 1 is now active',
+        gameweek: updatedGameweek,
+      });
     });
   });
 
+  describe('getGameWeekMatches', () => {
+    it('should return the matches for a given gameweek', async () => {
+      const gameweekNumber = 1;
+      const matches: Match[] = [];
+
+      mockGameweekService.getGameWeekMatches.mockResolvedValue(matches);
+
+      const result = await controller.getGameWeekMatches(gameweekNumber);
+
+      expect(gameweekService.getGameWeekMatches).toHaveBeenCalledWith(gameweekNumber);
+      expect(result).toEqual(matches);
+    });
+  });
+
+  describe('getGameWeekTeams', () => {
+    it('should return the teams for a given gameweek', async () => {
+      const gameweekNumber = 1;
+      const teams: GameweekTeam[] = [];
+
+      mockGameweekService.getGameWeekTeams.mockResolvedValue(teams);
+
+      const result = await controller.getGameWeekTeams(gameweekNumber);
+
+      expect(gameweekService.getGameWeekTeams).toHaveBeenCalledWith(gameweekNumber);
+      expect(result).toEqual(teams);
+    });
+  });
+
+  describe('getGameWeekTeam', () => {
+    it('should return a specific team for a given gameweek and team ID', async () => {
+      const gameweekNumber = 1;
+      const teamId = 'teamid-1';
+      const team: GameweekTeam = {
+        teamId,
+        teamPlayers: [],
+      };
+
+      mockGameweekService.getGameWeekTeam.mockResolvedValue(team);
+
+      const result = await controller.getGameWeekTeam(gameweekNumber, teamId);
+
+      expect(gameweekService.getGameWeekTeam).toHaveBeenCalledWith(gameweekNumber, teamId);
+      expect(result).toEqual(team);
+    });
+  });
 });
