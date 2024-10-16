@@ -5,7 +5,7 @@ export class CreateGameweekDto {
   @ApiProperty({
     example: 2,
     description:
-      'What si the numebr of the gameweek, is it the 1st, 2nd, 3rd gameweek',
+      'What is the number of the gameweek, is it the 1st, 2nd, 3rd gameweek',
   })
   @IsNumber()
   @IsNotEmpty()

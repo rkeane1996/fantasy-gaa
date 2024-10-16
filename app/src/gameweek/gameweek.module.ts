@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { GameweekController } from './controller/gameweek.controller';
 import { GameweekService } from './service/gameweek.service';
-import { GameweekRepository } from './repository/gameweek.repository';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Gameweek, GameweekSchema } from './schema/gameweek.schema';
 import { UserModule } from '../../src/user/user.module';
+import {
+  Gameweek,
+  GameweekSchema,
+} from '../../lib/gameweek/schema/gameweek.schema';
+import { GameweekRepository } from '../../lib/gameweek/repository/gameweek.repository';
 
 @Module({
   imports: [

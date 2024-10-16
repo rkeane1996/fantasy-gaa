@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsBoolean } from 'class-validator';
 
-export class StartStopGameweekDto {
+export class ActivateDeactivateGameweekDto {
   @ApiProperty({
     example: 2,
     description: 'The gameweek number',
