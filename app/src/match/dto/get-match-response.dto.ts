@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { County } from '../../../lib/common/enum/counties';
 import { PlayerPerformanceDto } from './player-performance.dto';
 
@@ -49,7 +55,19 @@ export class GetMatchResponseDto {
   @IsNumber()
   awayScore: string;
 
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
+  @IsDate()
+  @IsNotEmpty()
   dateCreated: Date;
+
+  @ApiProperty({
+    example: 2,
+    description: 'The gameweek the match is being played on',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  gameweek: number;
 }

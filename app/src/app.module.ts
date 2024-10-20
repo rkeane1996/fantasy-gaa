@@ -7,6 +7,7 @@ import { LeagueModule } from './league/league.module';
 import { AuthModule } from './auth/auth.module';
 import { GameweekModule } from './gameweek/gameweek.module';
 import { MatchModule } from './match/match.module';
+import { PointsServiceModule } from './points-service/points-service.module';
 import 'dotenv/config';
 
 @Module({
@@ -24,6 +25,7 @@ import 'dotenv/config';
     }),
     GameweekModule,
     MatchModule,
+    PointsServiceModule,
   ],
 })
 export class AppModule {}

@@ -120,4 +120,37 @@ export class GameweekRepository {
       )
     ).toJSON();
   }
+
+  async getTeamsThatOwnSpecificPlayer(
+    gameweekNumber: number,
+    playerId: string,
+  ): Promise<GameweekTeam[]> {
+    const gameweek = await this.gameweekModel.findOne({
+      gameweekNumber: gameweekNumber,
+    });
+    return gameweek.gameweekTeams.filter((team) => {
+      return team.teamPlayers.map((teamPlayer) => {
+        if (teamPlayer.playerId === playerId && teamPlayer.isSub === false) {
+          return teamPlayer;
+        }
+      });
+    });
+  }
+
+  async updateGameweekPointsForTeam(
+    gameweekNumber: number,
+    teamId: string,
+    newPoints: number,
+  ) {
+    // Update a specific team's points inside a particular gameweek
+    await this.gameweekModel.findOneAndUpdate(
+      {
+        gameweekNumber, // Filter by gameweekNumber
+        'gameweekTeams.teamId': teamId, // Find the team within gameweekTeams array by teamId
+      },
+      {
+        $set: { 'gameweekTeams.$.teamPoints': newPoints }, // Update the teamPoints for the matching team
+      },
+    );
+  }
 }

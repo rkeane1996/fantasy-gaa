@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsObject, IsString } from 'class-validator';
-import { PlayerPerformanceDto } from './player-performance.dto';
+import { PlayerPerformanceDto } from '../../match/dto/player-performance.dto';
 
-export class UpdatePlayerPerformanceDto {
+export class UpdatePointsDto {
   @IsNotEmpty()
   @IsString()
   matchId: string;

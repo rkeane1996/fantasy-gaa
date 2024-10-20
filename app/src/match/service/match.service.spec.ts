@@ -6,8 +6,6 @@ import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { GetMatchResponseDto } from '../dto/get-match-response.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
-import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto';
-import { Points } from '../../../lib/points/enum/points.enum';
 import { plainToInstance } from 'class-transformer';
 import { County } from '../../../lib/common/enum/counties';
 import { PlayerRepository } from '../../../lib/player/repository/player.repository';
@@ -55,6 +53,7 @@ describe('MatchService', () => {
       const createMatchDto: CreateMatchDto = {
         homeTeam: County.Antrim,
         awayTeam: County.Cork,
+        gameweek: 1,
         playerPerformance: [
           {
             playerId: 'playerId-1',
@@ -95,6 +94,7 @@ describe('MatchService', () => {
         awayScore: '0-12',
         playerPerformance: [],
         id: '123', 
+        gameweek: 1,
         dateCreated: new Date()
       };
       jest.spyOn(matchRepository, 'updateMatchScore').mockResolvedValue(mockUpdatedMatch);
@@ -111,7 +111,7 @@ describe('MatchService', () => {
 
   describe('getMatch', () => {
     it('should return the match if found', async () => {
-      const mockMatch = { matchId: '1', homeTeam: County.Antrim, awayTeam: County.Cork, homeScore: '1-10', awayScore: '0-12', playerPerformance: [], id: '123', dateCreated: new Date() };
+      const mockMatch = { matchId: '1', homeTeam: County.Antrim, awayTeam: County.Cork, homeScore: '1-10', gameweek: 1, awayScore: '0-12', playerPerformance: [], id: '123', dateCreated: new Date() };
       jest.spyOn(matchRepository, 'findMatch').mockResolvedValue(mockMatch);
 
       const result = await matchService.getMatch('1');
@@ -154,113 +154,6 @@ describe('MatchService', () => {
       jest.spyOn(matchRepository, 'findMatchPlayers').mockResolvedValue(null);
 
       await expect(matchService.getMatchPlayers('999')).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('updatePlayerPerformance', () => {
-    it('should update the player performance and return updated data', async () => {
-      const updatePlayerPerformanceDto: UpdatePlayerPerformanceDto = {
-        matchId: '1',
-        playerPerformance: {
-          playerId: 'playerId-1',
-          goals: 2,
-          points: 1,
-          yellowCards: 0,
-          redCards: 0,
-          minutes: 90,
-          saves: 0,
-          penaltySaves: 0,
-          hooks: 1,
-          blocks: 0,
-          totalPoints: 4,
-        },
-      };
-
-      const mockMatch = {
-        matchId: '1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Cork,
-        homeScore: '1-10',
-        awayScore: '0-12',
-        playerPerformance: [updatePlayerPerformanceDto.playerPerformance],
-        id: '123',
-        dateCreated: new Date() 
-      };
-      jest.spyOn(matchService, 'getMatch').mockResolvedValue(mockMatch);
-      jest.spyOn(matchRepository, 'updatePlayerPerformance').mockResolvedValue(mockMatch);
-
-      const result = await matchService.updatePlayerPerformance(updatePlayerPerformanceDto);
-      expect(result).toEqual(plainToInstance(PlayerPerformanceDto, updatePlayerPerformanceDto.playerPerformance));
-      expect(matchRepository.updatePlayerPerformance).toHaveBeenCalledWith(
-        updatePlayerPerformanceDto.matchId,
-        updatePlayerPerformanceDto.playerPerformance
-      );
-    });
-
-    it('should throw NotFoundException if player not found in the match', async () => {
-      const updatePlayerPerformanceDto: UpdatePlayerPerformanceDto = {
-        matchId: '1',
-        playerPerformance: {
-          playerId: 'unknown-player',
-          goals: 2,
-          points: 1,
-          yellowCards: 0,
-          redCards: 0,
-          minutes: 90,
-          saves: 0,
-          penaltySaves: 0,
-          hooks: 1,
-          blocks: 0,
-          totalPoints: 4,
-        },
-      };
-
-      const mockMatch = {
-        matchId: '1',
-        homeTeam: County.Antrim,
-        awayTeam: County.Cork,
-        homeScore: '1-10',
-        awayScore: '0-12',
-        playerPerformance: [],
-        id: '123', 
-        dateCreated: new Date()
-      };
-      jest.spyOn(matchService, 'getMatch').mockResolvedValue(mockMatch);
-
-      await expect(matchService.updatePlayerPerformance(updatePlayerPerformanceDto)).rejects.toThrow(
-        NotFoundException
-      );
-    });
-  });
-
-  describe('calculateTotalPoints', () => {
-    it('should calculate the total points correctly', () => {
-      const playerPerformance: PlayerPerformanceDto = {
-        playerId: 'player-1',
-        goals: 1,
-        points: 3,
-        yellowCards: 1,
-        redCards: 0,
-        minutes: 60,
-        saves: 2,
-        penaltySaves: 1,
-        hooks: 1,
-        blocks: 1,
-        totalPoints: 0,
-      };
-
-      const result = matchService['calculateTotalPoints'](playerPerformance);
-      const expectedPoints =
-        1 * Points.GOAL +
-        3 * Points.POINT +
-        1 * Points.YELLOW_CARD +
-        2 * Points.SAVES +
-        1 * Points.PENALTY_SAVE +
-        1 * Points.HOOK +
-        1 * Points.BLOCK +
-        Points.FULL_GAME_PLAYED;
-
-      expect(result).toEqual(expectedPoints);
     });
   });
 });
