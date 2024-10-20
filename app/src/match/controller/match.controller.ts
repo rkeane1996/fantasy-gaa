@@ -9,15 +9,15 @@ import {
 } from '@nestjs/common';
 import { MatchService } from '../service/match.service';
 import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { GetMatchResponseDto } from '../dto/get-match-response.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
-import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto';
 import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
 
 @Controller('match')
+@ApiTags('match')
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
@@ -72,20 +72,5 @@ export class MatchController {
     @Query('matchId') matchId: string,
   ): Promise<PlayerPerformanceDto[]> {
     return await this.matchService.getMatchPlayers(matchId);
-  }
-
-  @Put('player/performance')
-  @UseGuards(AdminAuthGuard)
-  @ApiOperation({ summary: 'Update players performance in match' })
-  @ApiResponse({
-    status: 201,
-    description: 'Update players performance',
-  })
-  async update(
-    @Body() updatePlayerPerformanceDto: UpdatePlayerPerformanceDto,
-  ): Promise<PlayerPerformanceDto> {
-    return await this.matchService.updatePlayerPerformance(
-      updatePlayerPerformanceDto,
-    );
   }
 }

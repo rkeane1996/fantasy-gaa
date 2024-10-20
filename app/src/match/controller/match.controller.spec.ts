@@ -5,7 +5,6 @@ import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { GetMatchResponseDto } from '../dto/get-match-response.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
-import { UpdatePlayerPerformanceDto } from '../dto/update-player-performance.dto';
 import { County } from '../../../lib/common/enum/counties';
 import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
@@ -45,6 +44,7 @@ describe('MatchController', () => {
         homeTeam: County.Antrim,
         awayTeam: County.Cork,
         playerPerformance: [],
+        gameweek: 1
       };
       const expectedResult: GetMatchResponseDto = {
         homeTeam: County.Antrim,
@@ -52,8 +52,9 @@ describe('MatchController', () => {
         homeScore: '0-00',
         awayScore: '0-00',
         playerPerformance: [],
-        id: '123', 
-        dateCreated: new Date()
+        id: '123',
+        dateCreated: new Date(),
+        gameweek: 1
       };
       jest.spyOn(matchService, 'createMatch').mockResolvedValue(expectedResult);
 
@@ -77,7 +78,8 @@ describe('MatchController', () => {
         awayScore: '3-12',
         playerPerformance: [],
         id: '123', 
-        dateCreated: new Date()
+        dateCreated: new Date(),
+        gameweek: 1
       };
       jest.spyOn(matchService, 'updateMatchScore').mockResolvedValue(expectedResult);
 
@@ -97,7 +99,8 @@ describe('MatchController', () => {
         awayScore: '0-12',
         playerPerformance: [],
         id: '123', 
-        dateCreated: new Date()
+        dateCreated: new Date(),
+        gameweek: 1
       };
       jest.spyOn(matchService, 'getMatch').mockResolvedValue(expectedResult);
 
@@ -130,33 +133,6 @@ describe('MatchController', () => {
       const result = await matchController.getMatchPlayers(matchId);
       expect(result).toBe(expectedPlayers);
       expect(matchService.getMatchPlayers).toHaveBeenCalledWith(matchId);
-    });
-  });
-
-  describe('updatePlayerPerformance', () => {
-    it('should update the player performance', async () => {
-      const updatePlayerPerformanceDto: UpdatePlayerPerformanceDto = {
-        matchId: '1',
-        playerPerformance: {
-          playerId: 'playerId-1',
-          goals: 2,
-          points: 1,
-          yellowCards: 0,
-          redCards: 0,
-          minutes: 90,
-          saves: 0,
-          penaltySaves: 0,
-          hooks: 1,
-          blocks: 0,
-          totalPoints: 4,
-        },
-      };
-      const expectedResult: PlayerPerformanceDto = updatePlayerPerformanceDto.playerPerformance;
-      jest.spyOn(matchService, 'updatePlayerPerformance').mockResolvedValue(expectedResult);
-
-      const result = await matchController.update(updatePlayerPerformanceDto);
-      expect(result).toBe(expectedResult);
-      expect(matchService.updatePlayerPerformance).toHaveBeenCalledWith(updatePlayerPerformanceDto);
     });
   });
 });

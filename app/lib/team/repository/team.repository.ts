@@ -63,4 +63,10 @@ export class TeamRepository {
       { new: true },
     );
   }
+
+  async addTotalPoints(teamId: string, points: number) {
+    await this.teamModel.findByIdAndUpdate(teamId, {
+      $set: { totalPoints: points },
+    });
+  }
 }

@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 import { County } from '../../../lib/common/enum/counties';
 import { ApiProperty } from '@nestjs/swagger';
 import { PlayerPerformanceDto } from './player-performance.dto';
@@ -37,4 +37,11 @@ export class CreateMatchDto {
     description: 'The players that are playing for both the home and away team',
   })
   playerPerformance: PlayerPerformanceDto[];
+
+  @ApiProperty({
+    example: 2,
+    description: 'The gameweek the match is being played on',
+  })
+  @IsNumber()
+  gameweek: number;
 }

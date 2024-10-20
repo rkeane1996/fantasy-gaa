@@ -28,6 +28,9 @@ export class Match extends BaseSchema {
 
   @Prop({ required: true })
   playerPerformance: PlayerPerformance[];
+
+  @Prop({ required: true })
+  gameweek: number;
 }
 
 export type MatchDocument = HydratedDocument<Match>;

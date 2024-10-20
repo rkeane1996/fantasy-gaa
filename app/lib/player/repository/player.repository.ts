@@ -65,12 +65,12 @@ export class PlayerRepository {
     ).toJSON();
   }
 
-  async addTotalPoints(playerId: string, points: number) {
+  async addTotalPoints(playerId: string, points: number): Promise<Player> {
     return (
       await this.playerModel.findByIdAndUpdate(
         playerId,
         {
-          $inc: { totalPoints: points },
+          $set: { totalPoints: points },
         },
         { new: true },
       )

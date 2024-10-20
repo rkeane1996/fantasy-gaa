@@ -124,11 +124,13 @@ describe('GameweekService', () => {
         teams: [
             {
                 teamId: 'team-1',
-                teamPlayers: []
+                teamPlayers: [],
+                teamPoints: 2
             },
             {
                 teamId: 'team-2',
-                teamPlayers: []
+                teamPlayers: [],
+                teamPoints: 2
             }, ],
       };
 
@@ -180,6 +182,7 @@ describe('GameweekService', () => {
         awayScore: '0-00',
         playerPerformance: [],
         id: '123', 
+        gameweek: 2,
         dateCreated: new Date()
       },{
         homeTeam: County.Antrim,
@@ -188,6 +191,7 @@ describe('GameweekService', () => {
         awayScore: '0-00',
         playerPerformance: [],
         id: '123', 
+        gameweek: 2,
         dateCreated: new Date()
       }];
 
@@ -208,7 +212,8 @@ describe('GameweekService', () => {
         homeScore: '0-00',
         awayScore: '0-00',
         playerPerformance: [],
-        id: '123', 
+        id: '123',
+        gameweek: 3, 
         dateCreated: new Date()
       };;
 
@@ -234,11 +239,13 @@ describe('GameweekService', () => {
       const teams = [
         {
             teamId: 'team-1',
-            teamPlayers: []
+            teamPlayers: [],
+            teamPoints: 2
         },
         {
             teamId: 'team-2',
-            teamPlayers: []
+            teamPlayers: [],
+            teamPoints: 2
         }, ];
 
       jest.spyOn(repository, 'getGameweekTeams').mockResolvedValue(teams);
@@ -255,7 +262,8 @@ describe('GameweekService', () => {
       const team = 
         {
             teamId: 'team-1',
-            teamPlayers: []
+            teamPlayers: [],
+            teamPoints: 2
         } ;
 
       jest.spyOn(repository, 'getGameweekTeam').mockResolvedValue(team);

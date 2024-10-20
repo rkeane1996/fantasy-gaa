@@ -11,4 +11,5 @@ export class GameweekTeam {
   })
   teamId: Team | string;
   teamPlayers: TeamPlayer[];
+  teamPoints: number;
 }

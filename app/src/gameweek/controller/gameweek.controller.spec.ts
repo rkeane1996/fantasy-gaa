@@ -213,6 +213,7 @@ describe('GameweekController', () => {
       const team: GameweekTeam = {
         teamId,
         teamPlayers: [],
+        teamPoints: 2
       };
 
       mockGameweekService.getGameWeekTeam.mockResolvedValue(team);
