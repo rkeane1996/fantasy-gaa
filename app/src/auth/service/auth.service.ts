@@ -27,7 +27,15 @@ export class AuthService {
     }
     const newUser = await this.userService.createUser(user);
     delete newUser.password;
-    const payload: any = { email: newUser.email, sub: newUser.id };
+    const currentDate = new Date();
+    const newDatePlusTwoHours = new Date(
+      currentDate.getTime() + 2 * 60 * 60 * 1000,
+    );
+    const payload: any = {
+      sub: newUser._id,
+      iat: currentDate.getTime(),
+      exp: newDatePlusTwoHours.getTime(),
+    };
     return {
       accesstoken: await this.jwtService.signAsync(payload),
     };
@@ -46,7 +54,15 @@ export class AuthService {
       throw new UnauthorizedException('Password is incorrect');
     }
     delete user.password;
-    const payload: any = { email: user.email, sub: user._id };
+    const currentDate = new Date();
+    const newDatePlusTwoHours = new Date(
+      currentDate.getTime() + 2 * 60 * 60 * 1000,
+    );
+    const payload: any = {
+      sub: user._id,
+      iat: currentDate.getTime(),
+      exp: newDatePlusTwoHours.getTime(),
+    };
 
     return {
       accesstoken: await this.jwtService.signAsync(payload),

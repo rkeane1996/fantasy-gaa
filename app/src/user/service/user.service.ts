@@ -28,12 +28,16 @@ export class UserService {
     return this.createResponseDto(user);
   }
 
-  async getUsers() {
-    const users = await this.userRepo.getUsers();
-    if (!users || users.length === 0) {
-      return [];
-    }
-    return users.map((user) => this.createResponseDto(user));
+  async getUsers(userIds: string[]) {
+    const users = await Promise.all(
+      userIds.map(async (id) => {
+        const userFound = await this.userRepo.getUser(id);
+        return userFound || null; // Return null if user not found
+      }),
+    );
+    return users.map((user) =>
+      user === null ? null : this.createResponseDto(user),
+    );
   }
 
   async findUsersByClub(club: string) {

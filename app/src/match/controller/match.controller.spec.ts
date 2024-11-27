@@ -6,8 +6,8 @@ import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { GetMatchResponseDto } from '../dto/get-match-response.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
 import { County } from '../../../lib/common/enum/counties';
-import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
-import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 
 describe('MatchController', () => {
   let matchController: MatchController;
@@ -28,9 +28,9 @@ describe('MatchController', () => {
           },
         },
       ],
-    }).overrideGuard(AdminAuthGuard)
+    }).overrideGuard(AuthGuard)
     .useValue({ canActivate: () => true }) // Mocking guard
-    .overrideGuard(UserAuthGuard)
+    .overrideGuard(RolesGuard)
     .useValue({ canActivate: () => true }) // Mocking guard
     .compile();
 

@@ -6,7 +6,8 @@ import { JoinLeagueDto } from '../dto/request/join-league.dto';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
 import { Team } from '../../../lib/team/schema/team.schema';
 import { ExecutionContext, NotFoundException } from '@nestjs/common';
-import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 describe('LeagueController', () => {
   let leagueController: LeagueController;
@@ -32,8 +33,10 @@ describe('LeagueController', () => {
           useValue: mockLeagueService,
         },
       ],
-    }).overrideGuard(UserAuthGuard)
+    }).overrideGuard(AuthGuard)
     .useValue(mockUserAuthGuard)
+    .overrideGuard(RolesGuard)
+          .useValue({ canActivate: () => true }) // Mocking guard
     .compile();
 
     leagueController = module.get<LeagueController>(LeagueController);

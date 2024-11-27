@@ -4,12 +4,13 @@ import { CreateLeagueDto } from '../dto/request/create-league.dto';
 import { LeagueService } from '../service/league.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetLeagueResponseDto } from '../dto/response/get-league-reponse.dto';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { Team } from 'lib/team/schema/team.schema';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { Roles } from '../../../src/auth/decorators/roles.decorators';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 @Controller('league')
 @ApiTags('league')
-@UseGuards(UserAuthGuard)
 export class LeagueController {
   constructor(private readonly leagueService: LeagueService) {}
 
@@ -20,6 +21,8 @@ export class LeagueController {
     description: 'League is created',
     type: GetLeagueResponseDto,
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async createLeague(
     @Body() request: CreateLeagueDto,
   ): Promise<GetLeagueResponseDto> {
@@ -32,6 +35,8 @@ export class LeagueController {
     status: 201,
     description: 'Team joined league',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async joinLeague(@Body() request: JoinLeagueDto) {
     return await this.leagueService.joinLeague(request);
   }
@@ -42,6 +47,8 @@ export class LeagueController {
     status: 200,
     type: GetLeagueResponseDto,
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getLeague(
     @Query('leagueId') leagueId: string,
   ): Promise<GetLeagueResponseDto> {
@@ -54,6 +61,8 @@ export class LeagueController {
     status: 200,
     type: [String],
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getTeamsInLeague(@Query('leagueId') leagueId: string): Promise<Team[]> {
     return await this.leagueService.getTeamsInLeague(leagueId);
   }

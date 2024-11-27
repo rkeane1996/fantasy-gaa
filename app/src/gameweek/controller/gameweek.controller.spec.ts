@@ -4,11 +4,13 @@ import { GameweekService } from '../service/gameweek.service';
 import { GetGameweekResponseDto } from '../dto/response/get-gameweek-repsonse.dto';
 import { GameweekTeam } from '../../../lib/gameweek/schema/gameweek.team.schema';
 import { Match } from '../../../lib/match/schema/match.schema';
-import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { AddMatchesToGameweekDto } from '../dto/request/add-matches-to-gameweek.dto';
 import { AddTeamsToGameweekDto } from '../dto/request/add-teams-to-gameweek.dto';
 import { ActivateDeactivateGameweekDto } from '../dto/request/start-end-gameweek.dto';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+
 
 describe('GameweekController', () => {
   let controller: GameweekController;
@@ -34,8 +36,11 @@ describe('GameweekController', () => {
           useValue: mockGameweekService,
         },
       ],
-    }).overrideGuard(AdminAuthGuard)
-    .useValue({ canActivate: () => true }).compile();
+    }).overrideGuard(AuthGuard)
+    .useValue({ canActivate: () => true })
+    .overrideGuard(RolesGuard)
+          .useValue({ canActivate: () => true }) // Mocking guard
+    .compile();
 
     controller = module.get<GameweekController>(GameweekController);
     gameweekService = module.get<GameweekService>(GameweekService);

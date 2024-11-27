@@ -12,8 +12,10 @@ import { TeamService } from '../service/team.service';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { EditTeamInfoDto } from '../dto/edit-team-dto';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { Roles } from '../../../src/auth/decorators/roles.decorators';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 @Controller('team')
 @ApiTags('team')
@@ -21,7 +23,8 @@ export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 
   @Post('/create')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Create a team' })
   @ApiResponse({
     status: 201,
@@ -32,7 +35,8 @@ export class TeamController {
   }
 
   @Put('/makePlayerTransfer')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Make transfers for a team' })
   @ApiResponse({
     status: 201,
@@ -51,7 +55,8 @@ export class TeamController {
   }
 
   @Get('/user')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get a users team' })
   @ApiResponse({
     status: 201,
@@ -69,7 +74,8 @@ export class TeamController {
   }
 
   @Get()
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get a team' })
   @ApiResponse({
     status: 201,
@@ -85,7 +91,8 @@ export class TeamController {
   }
 
   @Put('update')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Update a teams info' })
   @ApiResponse({
     status: 201,

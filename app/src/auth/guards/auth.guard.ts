@@ -7,10 +7,9 @@ import { Injectable } from '@nestjs/common/decorators/core/injectable.decorator'
 import { JwtService } from '@nestjs/jwt';
 import { authConstant } from '../constants/auth.constants';
 import { UserService } from '../../user/service/user.service';
-import { Role } from '../constants/roles';
 
 @Injectable()
-export class UserAuthGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private userService: UserService,
@@ -27,13 +26,16 @@ export class UserAuthGuard implements CanActivate {
         secret: authConstant.secret,
       });
 
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
       request['user'] = payload;
+      const user = await this.userService.getUser(request['user'].sub);
+      const tokenExpired = request['user'].exp < new Date().getTime();
+      if (tokenExpired) {
+        throw new UnauthorizedException('Token Expired, Please login!');
+      }
+      return user ? true : false;
     } catch (e) {
       throw new UnauthorizedException();
     }
-    return await this.userService.getUserRole(request['user'].sub, Role.User);
   }
 
   private extractTokenFromHeader(request: any): string | undefined {

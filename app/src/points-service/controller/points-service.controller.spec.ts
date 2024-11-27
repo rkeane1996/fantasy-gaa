@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PointsServiceController } from './points-service.controller';
-import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { PointsServiceService } from '../service/points-service.service';
 import { UpdatePointsDto } from '../dto/update-points.dto';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 describe('PointsServiceController', () => {
   let controller: PointsServiceController;
@@ -54,8 +55,10 @@ describe('PointsServiceController', () => {
         },
       ],
     })
-      .overrideGuard(AdminAuthGuard)
+      .overrideGuard(AuthGuard)
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(RolesGuard)
+          .useValue({ canActivate: () => true }) // Mocking guard
       .compile();
 
     app = module.createNestApplication();

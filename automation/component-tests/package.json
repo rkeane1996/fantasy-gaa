@@ -1,0 +1,30 @@
+{
+  "name": "component-tests",
+  "version": "1.0.0",
+  "description": "Component test for Fantasy GAA application",
+  "main": "index.js",
+  "scripts": {
+    "test:all": "npx cucumber-js",
+    "test:docker:workflow:none": "docker-compose -f ./docker-compose.workflow.yaml up --abort-on-container-exit --build --no-log-prefix",
+    "test:docker:workflow": "docker-compose -f ./docker-compose.workflow.yaml up --abort-on-container-exit --build"
+  },
+  "author": "Ronan Keane",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/lodash": "^4.14.202",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^11.0.1",
+    "@cucumber/pretty-formatter": "^1.0.1",
+    "@types/node": "^22.10.2",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "mongoose": "^8.7.2",
+    "ts-node": "^10.9.2",
+    "url-assembler": "^2.1.1"
+  }
+}

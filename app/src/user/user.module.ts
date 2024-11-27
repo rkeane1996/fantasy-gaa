@@ -9,11 +9,11 @@ import { UserRepository } from './repository/user.repository';
   imports: [
     MongooseModule.forFeature(
       [{ name: User.name, schema: UserSchema }],
-      process.env.USER_DB_CONNECTION_NAME,
+      process.env.FANTASY_GAA_DB_CONNECTION_NAME,
     ),
   ],
   controllers: [UserController],
   providers: [UserService, UserRepository],
-  exports: [UserService],
+  exports: [UserService, UserRepository],
 })
 export class UserModule {}

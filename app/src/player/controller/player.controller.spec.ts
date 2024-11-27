@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlayerController } from './player.controller';
 import { PlayerService } from '../service/player.service';
-import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { CreatePlayerDto } from '../dto/request/add-player-request.dto';
 import { UpdatePlayerStatusDto } from '../dto/request/update-player-status-request.dto';
@@ -11,6 +9,8 @@ import { GAAClub } from '../../../lib/common/enum/club';
 import { Position } from '../../../lib/common/enum/position';
 import { Status } from '../../../lib/player/constants/status.enum';
 import { UpdatePlayerPriceDto } from '../dto/request/update-player-price-request.dto copy';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 describe('PlayerController', () => {
   let playerController: PlayerController;
@@ -48,9 +48,9 @@ describe('PlayerController', () => {
         },
       ],
     })
-      .overrideGuard(AdminAuthGuard)
+      .overrideGuard(AuthGuard)
       .useValue({ canActivate: () => true }) // Mocking guard
-      .overrideGuard(UserAuthGuard)
+      .overrideGuard(RolesGuard)
       .useValue({ canActivate: () => true }) // Mocking guard
       .compile();
 
