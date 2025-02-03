@@ -1,0 +1,48 @@
+# This docker workflow spins up th efollowing containers
+#  - mongo db container
+#  - fantasy-gaa app container
+#  - component-test container
+
+services:
+  mongodb:
+    container_name: fantasy-gaa_mongo_db
+    image: mongo:latest
+    environment:
+      MONGODB_DATABASE: fantasy-gaa
+    command: mongod --quiet --logpath /dev/null --replSet rs0
+    logging:
+      driver: none
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})}" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - 27017:27017
+  
+  fantasy-gaa-app:
+    container_name: fantasy-gaa-container
+    image: ${FANTASY_GAA_APP}
+    env_file: .env.fantasy_gaa
+    depends_on:
+      mongodb: 
+        condition: service_healthy
+    network_mode: 'service:mongodb'
+  
+  component-tests:
+    container_name: automation-component-tests-container
+    image: node:20
+    env_file: .env.tests
+    environment:
+      DELAY_START: 5
+    volumes:
+      - .:/component-tests
+    working_dir: /component-tests
+    depends_on:
+      mongodb: 
+        condition: service_healthy
+      fantasy-gaa-app:
+        condition: service_started
+    network_mode: 'service:mongodb'
+    entrypoint: ['npm','run','test:all']
+

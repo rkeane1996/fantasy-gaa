@@ -31,3 +31,24 @@ jobs:
         name: Veryify App Code
         secrets: inherit
         uses: ./.github/workflows/_verify-app-code.yml
+    
+    build_docker_image:
+        needs: 
+            - verify_app_code
+            - pr_validation
+        name: Build Docker Image
+        uses: ./.github/workflows/_build-docker.yml
+        
+    run_tests:
+        name: Run Component Tests
+        needs:
+            - build_docker_image
+            - verify_app_code
+            - pr_validation
+        uses: ./.github/workflows/run-component-tests.yml
+        with: 
+            target: docker
+            fantasy-gaa-image: ${{ needs.build_docker_image.outputs.image-name }}
+
+
+    

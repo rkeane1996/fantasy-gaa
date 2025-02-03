@@ -17,9 +17,6 @@ import 'dotenv/config';
     UserModule,
     LeagueModule,
     AuthModule,
-    MongooseModule.forRoot(process.env.USER_DB_CONNECTION_STRING, {
-      connectionName: process.env.USER_DB_CONNECTION_NAME,
-    }),
     MongooseModule.forRoot(process.env.FANTASY_GAA_DB_CONNECTION_STRING, {
       connectionName: process.env.FANTASY_GAA_DB_CONNECTION_NAME,
     }),

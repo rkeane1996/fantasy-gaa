@@ -1,0 +1,66 @@
+name: Run Component Tests
+on:
+    workflow_call:
+        inputs:
+            target:
+                description: "Run test against environment or docker"
+                type: string
+                required: true
+            fantasy-gaa-image:
+                description: "The image to run docker test against"
+                type: string
+
+jobs:
+    run_component_tests:
+        name: Run component tests
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up node
+              uses: ./.github/actions/setup-node
+              with:
+                working-directory: automation/component-tests
+
+            - name: Setup docker compose
+              uses: KengoTODA/actions-setup-docker-compose@main
+              with:
+                version: '2.6.1'
+            
+            - name: Download artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: docker-image
+        
+            - name: Load Docker image
+              run: gunzip -c fantasy-gaa-app.tar.gz | docker load
+
+            - name: Warming docker
+              working-directory: automation/component-tests
+              run: |
+                export FANTASY_GAA_APP=fantasy-gaa-app:latest
+                echo "Downloading and extracting docker image"
+                npm run test:docker:workflow:none
+
+            - name: Run test with docker compose
+              working-directory: automation/component-tests
+              run: |
+                export FANTASY_GAA_APP=fantasy-gaa-app:latest
+                echo "Downloading and extracting docker image"
+                npm run test:docker:workflow
+            
+            - name: Collect Component test report
+              if: failure()
+              uses: jwalton/gh-docker-logs@v2
+              with:
+                dest: /tmp/logs
+                images: node:20
+            
+            - name: Upload logs
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                name: component-test-logs
+                path: /tmp/logs
+              
+

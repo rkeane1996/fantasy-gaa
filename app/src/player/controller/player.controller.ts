@@ -12,11 +12,12 @@ import { County } from '../../../lib/common/enum/counties';
 import { GAAClub } from '../../../lib/common/enum/club';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AdminAuthGuard } from '../../auth/guards/admin-auth.guard';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { UpdatePlayerStatusDto } from '../dto/request/update-player-status-request.dto';
 import { CreatePlayerDto } from '../dto/request/add-player-request.dto';
 import { UpdatePlayerPriceDto } from '../dto/request/update-player-price-request.dto copy';
+import { Roles } from '../../../src/auth/decorators/roles.decorators';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 
 @Controller('players')
 @ApiTags('player')
@@ -24,7 +25,8 @@ export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
   @Post('create')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   @ApiOperation({ summary: 'Add a Player' })
   @ApiResponse({
     status: 201,
@@ -38,7 +40,8 @@ export class PlayerController {
   }
 
   @Put('price')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   @ApiOperation({ summary: 'Update Players price' })
   @ApiResponse({
     status: 201,
@@ -52,7 +55,8 @@ export class PlayerController {
   }
 
   @Put('status')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   @ApiOperation({ summary: 'Update Players status' })
   @ApiResponse({
     status: 201,
@@ -66,7 +70,8 @@ export class PlayerController {
   }
 
   @Get()
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get all players' })
   @ApiResponse({
     status: 200,
@@ -78,7 +83,8 @@ export class PlayerController {
   }
 
   @Get('player')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get player' })
   @ApiResponse({
     status: 200,
@@ -96,7 +102,8 @@ export class PlayerController {
   }
 
   @Get('county')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get players from county' })
   @ApiResponse({
     status: 200,
@@ -110,7 +117,8 @@ export class PlayerController {
   }
 
   @Get('club')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get players from club' })
   @ApiResponse({
     status: 200,

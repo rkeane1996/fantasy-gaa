@@ -8,7 +8,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 import { GameweekService } from '../service/gameweek.service';
 import { CreateGameweekDto } from '../dto/request/create-gameweek.dto';
 import { ActivateDeactivateGameweekDto } from '../dto/request/start-end-gameweek.dto';
@@ -17,10 +16,12 @@ import { AddMatchesToGameweekDto } from '../dto/request/add-matches-to-gameweek.
 import { AddTeamsToGameweekDto } from '../dto/request/add-teams-to-gameweek.dto';
 import { GameweekTeam } from '../../../lib/gameweek/schema/gameweek.team.schema';
 import { Match } from '../../../lib/match/schema/match.schema';
+import { Roles } from '../../../src/auth/decorators/roles.decorators';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 
 @Controller('gameweek')
 @ApiTags('gameweek')
-@UseGuards(AdminAuthGuard)
 export class GameweekController {
   constructor(private readonly gameweekService: GameweekService) {}
 
@@ -31,6 +32,8 @@ export class GameweekController {
     description: 'Create gameweek',
     type: GetGameweekResponseDto,
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   async createGameWeek(
     @Body() createGameweekDto: CreateGameweekDto,
   ): Promise<GetGameweekResponseDto> {
@@ -44,6 +47,8 @@ export class GameweekController {
     description: 'Add Matches To Gameweek',
     type: GetGameweekResponseDto,
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   async addMatchesToGameweek(
     @Body() addMatchesToGameweekDto: AddMatchesToGameweekDto,
   ): Promise<GetGameweekResponseDto> {
@@ -59,6 +64,8 @@ export class GameweekController {
     description: 'Lock teams for gameweek',
     type: GetGameweekResponseDto,
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   async addTeamsToGameweek(
     @Body() addTeamsToGameweekDto: AddTeamsToGameweekDto,
   ): Promise<GetGameweekResponseDto> {
@@ -73,6 +80,8 @@ export class GameweekController {
     status: 200,
     description: 'Get gameweek',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getGameWeek(
     @Query('gameweekNumber') gameweekNumber: number,
   ): Promise<GetGameweekResponseDto> {
@@ -85,6 +94,8 @@ export class GameweekController {
     status: 200,
     description: 'Get gameweek matches',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getGameWeekMatches(
     @Query('gameweekNumber') gameweekNumber: number,
   ): Promise<Match[]> {
@@ -97,6 +108,8 @@ export class GameweekController {
     status: 200,
     description: 'Get gameweek teams',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getGameWeekTeams(
     @Query('gameweekNumber') gameweekNumber: number,
   ): Promise<GameweekTeam[]> {
@@ -109,6 +122,8 @@ export class GameweekController {
     status: 200,
     description: 'Get gameweek team',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   async getGameWeekTeam(
     @Query('gameweekNumber') gameweekNumber: number,
     @Query('teamId') teamId: string,
@@ -122,6 +137,8 @@ export class GameweekController {
     status: 201,
     description: 'Activate/Deactivate  a Gameweek',
   })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   async startEndGameweek(
     @Body() activateDeactivateGameweekDto: ActivateDeactivateGameweekDto,
   ) {

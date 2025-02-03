@@ -5,8 +5,9 @@ import { CreateTeamDTO } from '../dto/create-team.dto';
 import { TeamTransferDTO } from '../dto/team-transfer.dto';
 import { GetTeamResponseDto } from '../dto/get-team-dto';
 import { EditTeamInfoDto } from '../dto/edit-team-dto';
-import { UserAuthGuard } from '../../auth/guards/user-auth.guard';
 import { ExecutionContext } from '@nestjs/common';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 
 describe('TeamController', () => {
   let controller: TeamController;
@@ -34,8 +35,10 @@ describe('TeamController', () => {
         },
       ],
     })
-      .overrideGuard(UserAuthGuard)
+      .overrideGuard(AuthGuard)
       .useValue(mockUserAuthGuard)
+      .overrideGuard(RolesGuard)
+          .useValue({ canActivate: () => true }) // Mocking guard
       .compile();
 
     controller = module.get<TeamController>(TeamController);

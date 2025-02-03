@@ -8,13 +8,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MatchService } from '../service/match.service';
-import { AdminAuthGuard } from '../../../src/auth/guards/admin-auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchScoreDto } from '../dto/update-match-score.dto';
 import { GetMatchResponseDto } from '../dto/get-match-response.dto';
 import { PlayerPerformanceDto } from '../dto/player-performance.dto';
-import { UserAuthGuard } from '../../../src/auth/guards/user-auth.guard';
+import { AuthGuard } from '../../../src/auth/guards/auth.guard';
+import { Roles } from '../../../src/auth/decorators/roles.decorators';
+import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 
 @Controller('match')
 @ApiTags('match')
@@ -22,7 +23,8 @@ export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
   @Post('create')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   @ApiOperation({ summary: 'Create a match' })
   @ApiResponse({
     status: 201,
@@ -35,7 +37,8 @@ export class MatchController {
   }
 
   @Put('score')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE)
   @ApiOperation({ summary: 'Update the score for a match' })
   @ApiResponse({
     status: 201,
@@ -49,7 +52,8 @@ export class MatchController {
   }
 
   @Get()
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get match' })
   @ApiResponse({
     status: 200,
@@ -62,7 +66,8 @@ export class MatchController {
   }
 
   @Get('players')
-  @UseGuards(UserAuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get players in match' })
   @ApiResponse({
     status: 200,

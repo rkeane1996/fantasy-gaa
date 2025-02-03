@@ -1,0 +1,48 @@
+name: Build Docker Image
+
+on:
+  workflow_call:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # The runner used to execute the job
+    outputs:
+      image-name: ${{ steps.build-image.outputs.image-name }}  # Set image name as output
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx (for building Docker images)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 4: Build the Docker image
+      - name: Build Docker image
+        id: build-image
+        uses: docker/build-push-action@v5
+        with:
+          context: app/  # Specify the directory containing your Dockerfile
+          file: app/Dockerfile
+          push: false  # Do not push to Docker Hub; just build the image
+          tags: fantasy-gaa-app:latest  # Image tag, change this as needed
+          load: true
+
+      # Step 5: Set output for the image name
+      - name: Set image name as output
+        run: echo "image-name=fantasy-gaa-app:latest" >> $GITHUB_ENV
+        id: set-output
+
+      - name: List Docker images
+        run: docker images
+
+      # Optional: Save Docker image as an artifact (for later use in other jobs or workflows)
+      - name: Save Docker image
+        run: |
+          docker save fantasy-gaa-app:latest | gzip > fantasy-gaa-app.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: fantasy-gaa-app.tar.gz
+          retention-days: 1

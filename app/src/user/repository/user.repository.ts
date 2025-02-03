@@ -5,7 +5,7 @@ import { UserDTO } from '../dto/user.dto';
 
 export class UserRepository {
   constructor(
-    @InjectModel(User.name, process.env.USER_DB_CONNECTION_NAME)
+    @InjectModel(User.name, process.env.FANTASY_GAA_DB_CONNECTION_NAME)
     private readonly userModel: Model<User>,
   ) {}
 
@@ -32,8 +32,8 @@ export class UserRepository {
     return await this.userModel.deleteOne({ id: userId }).lean();
   }
 
-  async getUser(id: string): Promise<User> {
-    return await this.userModel.findOne({ _id: id }).lean();
+  async getUser(id: string): Promise<User | null> {
+    return (await this.userModel.findOne({ _id: id }).lean()) || null;
   }
 
   async getUserByEmail(email: string): Promise<User> {

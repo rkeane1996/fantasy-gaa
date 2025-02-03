@@ -111,21 +111,23 @@ describe('UserService', () => {
   describe('getUsers', () => {
     it('should return an array of user response DTOs', async () => {
       mockUserRepo.getUsers.mockResolvedValue([mockUser]);
+      mockUserRepo.getUser.mockResolvedValue(mockUser);
 
-      const result = await service.getUsers();
+      const result = await service.getUsers([mockUser._id]);
 
-      expect(userRepo.getUsers).toHaveBeenCalled();
+      expect(userRepo.getUser).toHaveBeenCalled();
       expect(result).toHaveLength(1);
       expect(result[0].userId).toBe(mockUser._id);
     });
 
     it('should return an empty array if no users found', async () => {
       mockUserRepo.getUsers.mockResolvedValue([]);
+      mockUserRepo.getUser.mockResolvedValue(null);
 
-      const result = await service.getUsers();
+      const result = await service.getUsers([mockUser._id, mockUser._id]);
 
-      expect(userRepo.getUsers).toHaveBeenCalled();
-      expect(result).toEqual([]);
+      expect(userRepo.getUser).toHaveBeenCalled();
+      expect(result).toEqual([null, null]);
     });
   });
 
