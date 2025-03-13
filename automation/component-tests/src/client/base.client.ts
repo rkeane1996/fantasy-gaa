@@ -16,6 +16,14 @@ export abstract class ServiceClient {
     return this._request<T>('get', resource, { ...options });
   }
 
+  protected _post<T>(resource: string, options?: ServiceClientConfig) {
+    return this._request<T>('post', resource, { ...options });
+  }
+
+  protected _put<T>(resource: string, options?: ServiceClientConfig) {
+    return this._request<T>('put', resource, { ...options });
+  }
+
   protected async _request<T>(
     method: HTTPMethod,
     resource: string,

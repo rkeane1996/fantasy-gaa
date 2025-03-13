@@ -128,7 +128,7 @@ describe('PlayerController', () => {
 
   describe('getPlayer', () => {
     it('should return a player by ID', async () => {
-      const playerId = '12345';
+      const playerId = ['12345'];
       mockPlayerService.getPlayer.mockResolvedValue(mockPlayerResponse);
 
       const result = await playerController.getPlayer(playerId);

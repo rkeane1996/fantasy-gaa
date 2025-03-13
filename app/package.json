@@ -14,7 +14,7 @@
     "check:lint": "eslint \"src/**/*.ts\" \"lib/**/**/*.ts\" --max-warnings=0",
     "check:lint:fix": "npm run check:lint -- --fix",
     "-----------------------------": "",
-    "start:mongo": "docker-compose up",
+    "start:mongo": "docker-compose -f docker-compose.mongo.yml up",
     "start": "npm run start:mongo & nest start",
     "start:all": "npm-run-all --parallel start:mongo start",
     "start:dev": "nest start --watch",

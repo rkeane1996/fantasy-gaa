@@ -1,4 +1,4 @@
-@CleanUser
+@CleanDB
 Feature: Test Scenarios to test the retrieval of User data
 
 Scenario: Attempt to retrieve a specific users
@@ -26,7 +26,7 @@ Scenario: Attempt to retrieve a specific users without a auth token
     When a getUser request is made to the service
     Then the "getUser" request should fail with a status of "Unauthorized"
 
-Scenario: Attempt to retrieve a specific users without an invalid token
+Scenario: Attempt to retrieve a specific users with an invalid token
    Given the application has authorized and authenticated users
         |firstName | club     | role |
         | tim      | NaFianna | user |

@@ -1,5 +1,6 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import { IClub } from "./club.type";
+import { IRole } from "./role.type";
 
 export interface IUser {
         firstName: string;
@@ -22,10 +23,4 @@ export interface IUserResponseType {
         role: IRole;
         userId: string;
 }
-
-export enum IRole {
-    User = 'user',
-    Admin = 'admin',
-    Fake = 'fake'
-  }
   

@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsObject, IsString } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { TeamInfo } from '../../../lib/team/schema/teamInfo.entity';
 import { County } from '../../../lib/common/enum/counties';
@@ -39,6 +46,8 @@ export class CreateTeamDTO {
   })
   @Type(() => TeamPlayer)
   @IsNotEmpty()
+  @ArrayMinSize(18)
+  @ArrayMaxSize(18)
   players: TeamPlayer[];
 
   @ApiProperty({

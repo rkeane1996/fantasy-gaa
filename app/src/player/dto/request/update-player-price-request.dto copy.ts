@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdatePlayerPriceDto {
@@ -13,6 +13,7 @@ export class UpdatePlayerPriceDto {
     example: 8.5,
   })
   @IsNumber()
+  @IsPositive()
   @IsNotEmpty()
   price: number;
 }

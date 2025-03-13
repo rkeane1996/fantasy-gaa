@@ -16,6 +16,7 @@ import { EditTeamInfoDto } from '../dto/edit-team-dto';
 import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 import { Roles } from '../../../src/auth/decorators/roles.decorators';
 import { RolesGuard } from '../../../src/auth/guards/roles.guard';
+import { CreateTeamResponseDTO } from '../dto/create-team-response.dto';
 
 @Controller('team')
 @ApiTags('team')
@@ -30,7 +31,9 @@ export class TeamController {
     status: 201,
     description: 'Team is created',
   })
-  async createTeam(@Body() request: CreateTeamDTO): Promise<string> {
+  async createTeam(
+    @Body() request: CreateTeamDTO,
+  ): Promise<CreateTeamResponseDTO> {
     return await this.teamService.createTeam(request);
   }
 
@@ -86,8 +89,10 @@ export class TeamController {
     status: 404,
     description: 'Team not found',
   })
-  async getTeam(@Query('teamId') teamId: string): Promise<GetTeamResponseDto> {
-    return await this.teamService.getTeamByTeamId(teamId);
+  async getTeam(
+    @Query('teamIds') teamId: string[],
+  ): Promise<GetTeamResponseDto[]> {
+    return await this.teamService.getTeamByTeamIds(teamId);
   }
 
   @Put('update')
