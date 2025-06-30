@@ -12,8 +12,17 @@ After({ name: 'After Hook - Close Database Connection'}, async function () {
     await Database.closeConnection();
 })
 
-After({ name: 'After Hook - Delete Users Created', tags: '@CleanUser'}, async function (this: App) {
+After({ name: 'After Hook - Delete Users, Players, Teams Created', tags: '@CleanDB'}, async function (this: App) {
     await this.db.user.deleteById(this.world.users.map(_ => _._id!.toString()));
+    if(this.world.createPlayerResponse){
+        await this.db.player.deleteById([this.world.createPlayerResponse.data.id])
+    }
+    if(this.world.players) {
+        await this.db.player.deleteById(this.world.players.map(player => player._id!.toString()))
+    }
+    if(this.world.team){
+        await this.db.team.deleteByTeamName();
+    }
 });
 
 

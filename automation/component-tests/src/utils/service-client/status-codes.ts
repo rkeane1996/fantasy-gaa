@@ -3,6 +3,11 @@ export const StatusCode: { [name: string]: any } = {
       status: 200,
       statusText: 'OK'
     },
+
+    CREATED: {
+      status: 201,
+      statusText: 'Created'
+    },
   
     BAD_REQUEST: {
       status: 400,

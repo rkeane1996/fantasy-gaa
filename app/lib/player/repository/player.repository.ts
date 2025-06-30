@@ -19,7 +19,11 @@ export class PlayerRepository {
   }
 
   async findPlayer(playerId: string): Promise<Player> {
-    return (await this.playerModel.findOne({ _id: playerId })).toJSON();
+    try {
+      return (await this.playerModel.findOne({ _id: playerId })).toJSON();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async findAllPlayers(): Promise<Player[]> {

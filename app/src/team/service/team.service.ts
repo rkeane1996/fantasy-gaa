@@ -12,6 +12,7 @@ import { TeamRepository } from '../../../lib/team/repository/team.repository';
 import { Team } from '../../../lib/team/schema/team.schema';
 import { EditTeamInfoDto } from '../dto/edit-team-dto';
 import { TeamPlayer } from '../../../lib/team/schema/teamPlayer.entity';
+import { CreateTeamResponseDTO } from '../dto/create-team-response.dto';
 
 @Injectable()
 export class TeamService {
@@ -19,7 +20,7 @@ export class TeamService {
 
   async createTeam(createTeamDto: CreateTeamDTO) {
     const team = await this.teamRepository.createTeam(createTeamDto);
-    return team.id;
+    return new CreateTeamResponseDTO(team.id);
   }
 
   async transferPlayers(teamTransferDto: TeamTransferDTO) {
@@ -54,12 +55,14 @@ export class TeamService {
     return this.createDtoResponse(team);
   }
 
-  async getTeamByTeamId(teamId: string) {
-    const team = await this.teamRepository.findTeamByTeamId(teamId);
-    if (!team) {
-      throw new NotFoundException(`Team not found by team id : ${teamId}`);
-    }
-    return this.createDtoResponse(team);
+  async getTeamByTeamIds(teamIds: string[]) {
+    const teams = await Promise.all(
+      teamIds.map(async (teamId) => {
+        const teamFound = await this.teamRepository.findTeamByTeamId(teamId);
+        return teamFound; // Return null if team not found
+      }),
+    );
+    return teams.map((team) => this.createDtoResponse(team));
   }
 
   async updateTeamInfo(editTeamInfo: EditTeamInfoDto) {

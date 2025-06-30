@@ -19,7 +19,7 @@ import { Roles } from '../../../src/auth/decorators/roles.decorators';
 import { RolesGuard } from '../../../src/auth/guards/roles.guard';
 import { AuthGuard } from '../../../src/auth/guards/auth.guard';
 
-@Controller('players')
+@Controller('player')
 @ApiTags('player')
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
@@ -69,7 +69,7 @@ export class PlayerController {
     return await this.playerService.updatePlayerStatus(updatePlayerStatusDto);
   }
 
-  @Get()
+  @Get('all')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get all players' })
@@ -82,7 +82,7 @@ export class PlayerController {
     return await this.playerService.getAllPlayers();
   }
 
-  @Get('player')
+  @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(process.env.ADMIN_ROLE, process.env.USER_ROLE)
   @ApiOperation({ summary: 'Get player' })
@@ -96,9 +96,9 @@ export class PlayerController {
     description: 'Player not found',
   })
   async getPlayer(
-    @Query('playerId') playerId: string,
-  ): Promise<FindPlayerResponseDTO> {
-    return await this.playerService.getPlayer(playerId);
+    @Query('playerIds') playerIds: string[],
+  ): Promise<FindPlayerResponseDTO[]> {
+    return await this.playerService.getPlayer(playerIds);
   }
 
   @Get('county')

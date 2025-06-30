@@ -1,5 +1,6 @@
 import { HydratedDocument, model, Schema } from 'mongoose';
-import { IRole, IUser } from '../types/user.type';
+import { IUser } from '../types/user.type';
+import { IRole } from '../types/role.type';
 
 const GAAClubSchema = new Schema({
     clubName: String,

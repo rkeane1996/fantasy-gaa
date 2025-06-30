@@ -1,13 +1,21 @@
 import mongoose from "mongoose";
 import { UserRepository } from "../db/mongodb/repository/user.repository";
 import { UserModel } from "../db/mongodb/schemas/user.schema";
+import { TeamRepository } from "../db/mongodb/repository/team.repository";
+import { PlayerRepository } from "../db/mongodb/repository/player.repository";
+import { PlayerModel } from "../db/mongodb/schemas/player.schema";
+import { TeamModel } from "../db/mongodb/schemas/team.schema";
 
 export class Database {
     private static connection: mongoose.Connection | null = null;
-    user: UserRepository
+    user: UserRepository;
+    team: TeamRepository;
+    player: PlayerRepository;
 
     constructor(){
         this.user = new UserRepository(UserModel);
+        this.player = new PlayerRepository(PlayerModel);
+        this.team = new TeamRepository(TeamModel);
     }
 
     static async initConnection(){

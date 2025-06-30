@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePlayerDto } from '../dto/request/add-player-request.dto';
 import { County } from '../../../lib/common/enum/counties';
 import { FindPlayerResponseDTO } from '../dto/response/get-player-response.dto';
@@ -24,12 +24,14 @@ export class PlayerService {
     return plainToInstance(FindPlayerResponseDTO, players);
   }
 
-  async getPlayer(playerId: string) {
-    const player = await this.playerRepository.findPlayer(playerId);
-    if (!player) {
-      throw new NotFoundException(`Player was not found by id: ${playerId}`);
-    }
-    return plainToInstance(FindPlayerResponseDTO, player);
+  async getPlayer(playerIds: string[]) {
+    const players = await Promise.all(
+      playerIds.map(async (playerId) => {
+        const playerFound = await this.playerRepository.findPlayer(playerId);
+        return playerFound; // Return null if user not found
+      }),
+    );
+    return plainToInstance(FindPlayerResponseDTO, players);
   }
 
   async getPlayersFromCounty(county: County) {

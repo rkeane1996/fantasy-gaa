@@ -96,7 +96,7 @@ describe('TeamService', () => {
       const result = await service.createTeam(mockCreateTeamDto);
 
       expect(teamRepository.createTeam).toHaveBeenCalledWith(mockCreateTeamDto);
-      expect(result).toBe(mockTeam.id);
+      expect(result).toEqual({id: mockTeam.id});
     });
   });
 

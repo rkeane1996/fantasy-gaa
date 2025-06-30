@@ -100,24 +100,22 @@ describe('PlayerService', () => {
 
   describe('getPlayer', () => {
     it('should return a player by ID', async () => {
-      const playerId = '12345';
+      const playerId = ['12345'];
       mockPlayerRepository.findPlayer.mockResolvedValue(mockPlayer);
 
       const result = await playerService.getPlayer(playerId);
 
-      expect(result).toEqual(plainToInstance(FindPlayerResponseDTO, mockPlayer));
-      expect(playerRepository.findPlayer).toHaveBeenCalledWith(playerId);
+      expect(result).toEqual([plainToInstance(FindPlayerResponseDTO, mockPlayer)]);
+      expect(playerRepository.findPlayer).toHaveBeenCalledWith(playerId[0]);
     });
 
     it('should throw NotFoundException if player is not found', async () => {
-      const playerId = '12345';
+      const playerId = ['12345'];
       mockPlayerRepository.findPlayer.mockResolvedValue(null);
+      const result = await playerService.getPlayer(playerId);
+      await expect(result).toEqual([null]);
 
-      await expect(playerService.getPlayer(playerId)).rejects.toThrow(
-        new NotFoundException(`Player was not found by id: ${playerId}`),
-      );
-
-      expect(playerRepository.findPlayer).toHaveBeenCalledWith(playerId);
+      expect(playerRepository.findPlayer).toHaveBeenCalledWith(playerId[0]);
     });
   });
 
